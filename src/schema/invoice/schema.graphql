@@ -35,7 +35,7 @@ type _Invoice {
 }
 
 extend type Query {
-    invoice(id: ID!): InvoicePayload @requireAuth @requirePermissions(permissions: ["invoice:view"])
+    invoice(uuid: ID!): InvoicePayload @requireAuth @requirePermissions(permissions: ["invoice:view"])
     invoices(paging: PaginatorInput, params: InvoiceFilter): InvoicesPayload! @requireAuth @requirePermissions(permissions: ["invoice:view"])
 }
 
