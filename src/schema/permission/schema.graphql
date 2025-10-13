@@ -1,0 +1,14 @@
+type VendorPermission_Common {
+  id: ID!
+  name: String
+  status: Status!
+}
+
+extend type Mutation {
+  loadPermissionsFromServer(
+    idIndex: Int
+    nameIndex: Int
+    rolesIndex: Int
+    link: String
+  ): Boolean
+}

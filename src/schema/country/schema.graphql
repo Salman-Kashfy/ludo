@@ -1,0 +1,43 @@
+type Country {
+	id: ID!
+	name: String!
+	status: Status!
+	iso2: String!
+	iso3: String!
+	phoneCode: String
+	numericCode: String!
+	currency: Currency
+	capital: String
+	region: String
+	regionId: Int
+	subregion: String
+	subregionId: String
+	nationality: String
+	latitude: Float
+	longitude: Float
+	supported: Boolean!
+}
+
+type Currency {
+	name: String
+	code: String
+	symbol: String
+}
+
+#------------------------
+# Query
+#------------------------
+extend type Query {
+	countries(params: CountryFilter): CountryPayload! @requireAuth
+}
+
+input CountryFilter {
+	supported: Boolean
+}
+
+#------------------------
+# Save Brand Schema
+#------------------------
+type CountryPayload {
+	list: [Country]
+}

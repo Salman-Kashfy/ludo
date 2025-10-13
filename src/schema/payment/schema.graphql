@@ -1,0 +1,88 @@
+enum PaymentMethod {
+    CASH
+    CARD
+    BANK_TRANSFER
+}
+
+enum PaymentStatus {
+    COMPLETED
+    REFUNDED
+    PARTIALLY_REFUNDED
+}
+
+type Payment {
+    id: ID!
+    customerId: Int!
+    invoiceId: String
+    amount: Float!
+    method: PaymentMethod!
+    status: PaymentStatus!
+    refundNote: String
+    refundedAt: String
+    createdAt: String!
+    updatedAt: String!
+    
+    # Relations
+    customer: _Customer!
+    invoice: _Invoice
+}
+
+type _Payment {
+    id: ID!
+    customerId: Int!
+    invoiceId: String
+    amount: Float!
+    method: PaymentMethod!
+    status: PaymentStatus!
+    refundNote: String
+    refundedAt: String
+}
+
+extend type Query {
+    payment(id: ID!): PaymentPayload @requireAuth @requirePermissions(permissions: ["payment:view"])
+    payments(paging: PaginatorInput, params: PaymentFilter): PaymentsPayload! @requireAuth @requirePermissions(permissions: ["payment:view"])
+}
+
+extend type Mutation {
+    createPayment(input: CreatePaymentInput!): SavePaymentPayload @requireAuth @requirePermissions(permissions: ["payment:create"])
+    refundPayment(input: RefundPaymentInput!): SavePaymentPayload @requireAuth @requirePermissions(permissions: ["payment:update"])
+}
+
+input PaymentFilter {
+    searchText: String
+    customerId: Int
+    status: PaymentStatus
+    method: PaymentMethod
+}
+
+type PaymentPayload {
+    data: Payment
+    errors: [GlobalError]
+    status: Boolean
+    errorMessage: String
+}
+
+type PaymentsPayload {
+    list: [Payment]
+    paging: PaginatorOutputUpdated
+}
+
+input CreatePaymentInput {
+    customerId: Int!
+    amount: Float!
+    method: PaymentMethod!
+    invoiceId: String
+}
+
+input RefundPaymentInput {
+    id: ID!
+    refundNote: String!
+    refundAmount: Float
+}
+
+type SavePaymentPayload {
+    data: Payment
+    errors: GlobalError
+    status: Boolean
+    errorMessage: String
+}

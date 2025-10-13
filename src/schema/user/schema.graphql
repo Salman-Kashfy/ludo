@@ -1,0 +1,123 @@
+
+type User {
+    id: ID!
+    uuid: String!
+    roleId: String!
+    firstName: String!
+    middleName: String
+    lastName: String
+    fullName: String
+    email: String!
+    countryId: Int!
+    companyId: Int
+    phoneCode: String
+    phoneNumber: String
+    gender: Gender
+    status: Status!
+    photo: String
+    inviteLink: String
+    inviteExpiry: Datetime
+    biometricUserId: String
+    createdById: String!
+    lastUpdatedById: String
+    createdAt: Datetime!
+    updatedAt: Datetime!
+    isSysAdmin: Boolean!
+
+    # Relations
+    role: Role!
+    company: _Company
+}
+
+type _User {
+    uuid: String!
+    firstName: String!
+    middleName: String
+    lastName: String
+    fullName: String
+}
+
+#------------------------
+# Query
+#------------------------
+extend type Query {
+    user(id: ID!): UserPayload @requireAuth @requirePermissions(permissions: ["user:view"])
+    users(paging: PaginatorInput, params: UserFilter): UsersPayload! @requireAuth @requirePermissions(permissions: ["user:view"])
+}
+
+#------------------------
+# Schema mutations
+#------------------------
+extend type Mutation {
+    createUser(input: CreateUserInput!): SaveUserPayload @requireAuth @requirePermissions(permissions: ["user:create"])
+    updateUser(input: UpdateUserInput!): SaveUserPayload @requireAuth @requirePermissions(permissions: ["user:update"])
+    updateUserStatus(input: UpdateUserStatusInput!): SaveUserPayload @requireAuth @requirePermissions(permissions: ["user:update"])
+}
+
+#------------------------
+# Query types
+#------------------------
+input UserFilter {
+    searchText: String
+    companyId: Int
+    roleId: Int
+    status: Status
+}
+type UserPayload {
+    data: User
+    errors: [GlobalError]
+    status: Boolean
+    errorMessage: String
+}
+type UsersPayload {
+    list: [User]
+    paging: PaginatorOutputUpdated
+}
+
+#------------------------
+# Mutations types
+#------------------------
+
+input CreateUserInput {
+    roleId: Int!
+    firstName: String!
+    middleName: String
+    lastName: String
+    email: String!
+    password: String!
+    countryId: Int
+    companyId: Int
+    phoneCode: String
+    phoneNumber: String
+    gender: Gender
+    photo: String
+    biometricUserId: String
+}
+
+input UpdateUserInput {
+    uuid: String
+    roleId: Int!
+    firstName: String!
+    middleName: String
+    lastName: String
+    email: String!
+    countryId: Int
+    companyId: Int
+    phoneCode: String
+    phoneNumber: String
+    gender: Gender
+    photo: String
+    biometricUserId: String
+}
+
+input UpdateUserStatusInput {
+    id: ID!
+    status: Status
+}
+
+type SaveUserPayload {
+    data: User
+    errors: GlobalError
+    status: Boolean
+    errorMessage: String
+}

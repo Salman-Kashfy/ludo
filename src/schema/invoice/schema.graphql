@@ -1,0 +1,97 @@
+enum InvoiceStatus {
+    UNPAID
+    PARTIALLY_PAID
+    PAID
+    CANCELLED
+}
+
+type Invoice {
+    id: ID!
+    uuid: String!
+    customerId: Int!
+    tableSessionId: Int
+    totalAmount: Float!
+    paidAmount: Float!
+    remainingAmount: Float!
+    status: InvoiceStatus!
+    notes: String
+    createdAt: Datetime!
+    updatedAt: Datetime!
+    
+    # Relations
+    customer: _Customer!
+    tableSession: _TableSession
+}
+
+type _Invoice {
+    uuid: String!
+    customerId: Int!
+    tableSessionId: Int
+    totalAmount: Float!
+    paidAmount: Float!
+    remainingAmount: Float!
+    status: InvoiceStatus!
+    notes: String
+}
+
+extend type Query {
+    invoice(id: ID!): InvoicePayload @requireAuth @requirePermissions(permissions: ["invoice:view"])
+    invoices(paging: PaginatorInput, params: InvoiceFilter): InvoicesPayload! @requireAuth @requirePermissions(permissions: ["invoice:view"])
+}
+
+extend type Mutation {
+    createInvoice(input: CreateInvoiceInput!): SaveInvoicePayload @requireAuth @requirePermissions(permissions: ["invoice:create"])
+    updateInvoice(input: UpdateInvoiceInput!): SaveInvoicePayload @requireAuth @requirePermissions(permissions: ["invoice:update"])
+    updateInvoiceStatus(input: UpdateInvoiceStatusInput!): SaveInvoicePayload @requireAuth @requirePermissions(permissions: ["invoice:update"])
+}
+
+input InvoiceFilter {
+    searchText: String
+    customerId: Int
+    status: InvoiceStatus
+}
+
+type InvoicePayload {
+    data: Invoice
+    errors: [GlobalError]
+    status: Boolean
+    errorMessage: String
+}
+
+type InvoicesPayload {
+    list: [Invoice]
+    paging: PaginatorOutputUpdated
+}
+
+input CreateInvoiceInput {
+    customerId: Int!
+    totalAmount: Float!
+    paidAmount: Float
+    remainingAmount: Float
+    status: InvoiceStatus
+    notes: String
+    tableSessionId: Int
+}
+
+input UpdateInvoiceInput {
+    id: ID!
+    customerId: Int
+    totalAmount: Float
+    paidAmount: Float
+    remainingAmount: Float
+    status: InvoiceStatus
+    notes: String
+    tableSessionId: Int
+}
+
+input UpdateInvoiceStatusInput {
+    id: ID!
+    status: InvoiceStatus!
+}
+
+type SaveInvoicePayload {
+    data: Invoice
+    errors: GlobalError
+    status: Boolean
+    errorMessage: String
+}

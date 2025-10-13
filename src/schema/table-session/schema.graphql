@@ -1,0 +1,81 @@
+enum TableSessionStatus {
+    ACTIVE
+    COMPLETED
+    CANCELLED
+}
+
+type TableSession {
+    id: ID!
+    customerId: Int!
+    tableId: Int!
+    startTime: String!
+    endTime: String
+    totalAmount: Float
+    status: TableSessionStatus!
+    createdAt: String!
+    updatedAt: String!
+    
+    # Relations
+    customer: _Customer!
+    table: _Table!
+}
+
+type _TableSession {
+    id: ID!
+    customerId: Int!
+    tableId: Int!
+    startTime: String!
+    endTime: String
+    totalAmount: Float
+    status: TableSessionStatus!
+}
+
+extend type Query {
+    tableSession(id: ID!): TableSessionPayload @requireAuth @requirePermissions(permissions: ["table_session:view"])
+    tableSessions(paging: PaginatorInput, params: TableSessionFilter): TableSessionsPayload! @requireAuth @requirePermissions(permissions: ["table_session:view"])
+    activeTableSessions: TableSessionsPayload! @requireAuth @requirePermissions(permissions: ["table_session:view"])
+}
+
+extend type Mutation {
+    startTableSession(input: StartTableSessionInput!): SaveTableSessionPayload @requireAuth @requirePermissions(permissions: ["table_session:create"])
+    endTableSession(input: EndTableSessionInput!): SaveTableSessionPayload @requireAuth @requirePermissions(permissions: ["table_session:update"])
+    cancelTableSession(id: ID!): SaveTableSessionPayload @requireAuth @requirePermissions(permissions: ["table_session:update"])
+}
+
+input TableSessionFilter {
+    searchText: String
+    customerId: Int
+    tableId: Int
+    status: TableSessionStatus
+    dateFrom: String
+    dateTo: String
+}
+
+type TableSessionPayload {
+    data: TableSession
+    errors: [GlobalError]
+    status: Boolean
+    errorMessage: String
+}
+
+type TableSessionsPayload {
+    list: [TableSession]
+    paging: PaginatorOutputUpdated
+}
+
+input StartTableSessionInput {
+    customerId: Int!
+    tableId: Int!
+}
+
+input EndTableSessionInput {
+    id: ID!
+    endTime: String
+}
+
+type SaveTableSessionPayload {
+    data: TableSession
+    errors: GlobalError
+    status: Boolean
+    errorMessage: String
+}

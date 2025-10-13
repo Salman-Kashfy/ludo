@@ -1,0 +1,16 @@
+export enum OtpType {
+    EMAIL_VERIFICATION = 'EMAIL_VERIFICATION',
+    PASSWORD_RESET = 'PASSWORD_RESET'
+}
+
+export enum OtpChannel {
+    PHONE = 'PHONE',
+    EMAIL = 'EMAIL'
+}
+
+export enum OtpError {
+    NOT_FOUND = 'NOT_FOUND',
+    INVALID_OTP = 'INVALID_OTP',
+    WEAK_PASSWORD = 'WEAK_PASSWORD',
+    TOO_MANY_REQUESTS = 'TOO_MANY_REQUESTS',
+}

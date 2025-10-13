@@ -1,0 +1,72 @@
+type Customer {
+    id: ID!
+    firstName: String!
+    lastName: String!
+    phoneCode: String
+    phoneNumber: String
+    createdAt: String!
+    updatedAt: String!
+}
+
+type _Customer {
+    id: ID!
+    firstName: String!
+    lastName: String!
+    phoneCode: String
+    phoneNumber: String
+}
+
+extend type Query {
+    customer(id: ID!): CustomerPayload @requireAuth @requirePermissions(permissions: ["customer:view"])
+    customers(paging: PaginatorInput, params: CustomerFilter): CustomersPayload! @requireAuth @requirePermissions(permissions: ["customer:view"])
+}
+
+extend type Mutation {
+    createCustomer(input: CreateCustomerInput!): SaveCustomerPayload @requireAuth @requirePermissions(permissions: ["customer:create"])
+    updateCustomer(input: UpdateCustomerInput!): SaveCustomerPayload @requireAuth @requirePermissions(permissions: ["customer:update"])
+    deleteCustomer(id: ID!): DeleteCustomerPayload @requireAuth @requirePermissions(permissions: ["customer:delete"])
+}
+
+input CustomerFilter {
+    searchText: String
+}
+
+type CustomerPayload {
+    data: Customer
+    errors: [GlobalError]
+    status: Boolean
+    errorMessage: String
+}
+
+type CustomersPayload {
+    list: [Customer]
+    paging: PaginatorOutputUpdated
+}
+
+input CreateCustomerInput {
+    firstName: String!
+    lastName: String!
+    phoneCode: String
+    phoneNumber: String
+}
+
+input UpdateCustomerInput {
+    id: ID!
+    firstName: String!
+    lastName: String!
+    phoneCode: String
+    phoneNumber: String
+}
+
+type SaveCustomerPayload {
+    data: Customer
+    errors: GlobalError
+    status: Boolean
+    errorMessage: String
+}
+
+type DeleteCustomerPayload {
+    status: Boolean
+    errors: GlobalError
+    errorMessage: String
+}

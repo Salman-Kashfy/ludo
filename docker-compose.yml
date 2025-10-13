@@ -1,0 +1,10 @@
+services:
+    redis-ludo:
+        image: redis:alpine
+        command: ["redis-server", "/data/redis.conf"]
+        volumes:
+            - ./redis_data_ludo:/data
+            - ./redis_ludo.conf:/data/redis.conf
+        ports:
+            - "127.0.0.1:6381:6379"
+        restart: unless-stopped

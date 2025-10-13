@@ -1,0 +1,40 @@
+<p>Congratulations,</p>
+<p>You have received a payment of <%= amount %></p>
+<p>Please verify the amount mark as paid on CRM at your earliest.</p>
+<p>Following are the current subscription details</p>
+<table style="text-align: left; width: 280px;">
+    <tbody>
+        <tr>
+            <th>Brand:</th>
+            <td><%= brandName %></td>
+        </tr>
+        <tr>
+            <th>Amount:</th>
+            <td><%= amount %></td>
+        </tr>
+        <tr>
+            <th>Subscription Status:</th>
+            <td><%= subscriptionStatus %></td>
+        </tr>
+        <tr>
+            <th>Subscription Plan:</th>
+            <td><%= subscriptionPlan %></td>
+        </tr>
+        <tr>
+            <th>Payment Plan:</th>
+            <td><%= paymentPlan %></td>
+        </tr>
+        <tr>
+            <th>Transaction ID:</th>
+            <td><%= transactionId %></td>
+        </tr>
+        <tr>
+            <th>Expiry Date:</th>
+            <td><%= expiryDate %></td>
+        </tr>
+        <tr>
+            <th>Last Date of Access:</th>
+            <td><%= graceExpiryDate %></td>
+        </tr>
+    </tbody>
+</table>

@@ -1,0 +1,102 @@
+type Shift {
+    uuid: String!
+    name: String!
+    startTime: String!
+    endTime: String!
+    days: [String!]!
+    description: String
+    status: Status!
+    createdAt: String!
+    updatedAt: String!
+
+    # Relations
+    createdBy: _User!
+    lastUpdatedBy: _User
+}
+
+type _Shift {
+    uuid: String!
+    name: String!
+    startTime: String!
+    endTime: String!
+    days: [String!]!
+    status: Status!
+}
+
+#------------------------
+# Schema queries
+#------------------------
+extend type Query {
+    shift(uuid: String!): ShiftPayload @requireAuth @requirePermissions(permissions: ["shift:view"])
+    shifts(paging: PaginatorInput!, params: ShiftFilterInput!): ShiftsPayload @requireAuth @requirePermissions(permissions: ["shift:view"])
+}
+
+#------------------------
+# Schema mutations
+#------------------------
+extend type Mutation {
+    createShift(input: CreateShiftInput!): SaveShiftPayload @requireAuth @requirePermissions(permissions: ["shift:upsert"])
+    updateShift(input: UpdateShiftInput!): SaveShiftPayload @requireAuth @requirePermissions(permissions: ["shift:upsert"])
+    deleteShift(uuid: String!): DeleteShiftPayload @requireAuth @requirePermissions(permissions: ["shift:delete"])
+}
+
+#------------------------
+# Query types
+#------------------------
+
+input ShiftFilterInput {
+    searchText: String
+    status: Status
+}
+
+type ShiftPayload {
+    data: Shift
+    errors: GlobalError
+    status: Boolean
+    errorMessage: String
+}
+
+type ShiftsPayload {
+    data: [Shift!]
+    paging: PaginatorOutputUpdated
+    errors: GlobalError
+    status: Boolean
+    errorMessage: String
+}
+
+#------------------------
+# Mutation types
+#------------------------
+
+input CreateShiftInput {
+    name: String!
+    startTime: String!
+    endTime: String!
+    days: [String!]!
+    description: String
+    status: Status
+}
+
+input UpdateShiftInput {
+    uuid: String!
+    name: String!
+    startTime: String!
+    endTime: String!
+    days: [String!]!
+    description: String
+    status: Status
+}
+
+type SaveShiftPayload {
+    data: _Shift
+    errors: GlobalError
+    status: Boolean
+    errorMessage: String
+}
+
+type DeleteShiftPayload {
+    data: String
+    errors: GlobalError
+    status: Boolean
+    errorMessage: String
+}

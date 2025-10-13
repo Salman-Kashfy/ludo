@@ -1,0 +1,68 @@
+type Category {
+    id: ID!
+    name: String!
+    hourlyRate: Float!
+    currencyName: String!
+}
+
+type _Category {
+    id: ID!
+    name: String!
+    hourlyRate: Float!
+    currencyName: String!
+}
+
+#------------------------
+# Query
+#------------------------
+extend type Query {
+    category(id: ID!): CategoryPayload @requireAuth @requirePermissions(permissions: ["category:view"])
+    categories(paging: PaginatorInput, params: CategoryFilter): CategoriesPayload! @requireAuth @requirePermissions(permissions: ["category:view"])
+}
+
+#------------------------
+# Schema mutations
+#------------------------
+extend type Mutation {
+    createCategory(input: CreateCategoryInput!): SaveCategoryPayload @requireAuth @requirePermissions(permissions: ["category:create"])
+    updateCategory(input: UpdateCategoryInput!): SaveCategoryPayload @requireAuth @requirePermissions(permissions: ["category:update"])
+}
+
+#------------------------
+# Query types
+#------------------------
+input CategoryFilter {
+    searchText: String
+}
+type CategoryPayload {
+    data: Category
+    errors: [GlobalError]
+    status: Boolean
+    errorMessage: String
+}
+type CategoriesPayload {
+    list: [Category]
+    paging: PaginatorOutputUpdated
+}
+
+#------------------------
+# Mutations types
+#------------------------
+
+input CreateCategoryInput {
+    name: String!
+    hourlyRate: Float!
+}
+
+input UpdateCategoryInput {
+    id: ID!
+    name: String!
+    hourlyRate: Float!
+}
+
+type SaveCategoryPayload {
+    data: Category
+    errors: GlobalError
+    status: Boolean
+    errorMessage: String
+}

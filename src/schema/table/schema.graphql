@@ -1,0 +1,84 @@
+enum TableStatus {
+    AVAILABLE
+    OCCUPIED
+    RESERVED
+}
+
+type Table {
+    id: ID!
+    name: String!
+    categoryId: Int!
+    status: TableStatus!
+    category: Category!
+}
+
+type _Table {
+    id: ID!
+    name: String!
+    status: TableStatus!
+}
+
+#------------------------
+# Query
+#------------------------
+extend type Query {
+    table(id: ID!): TablePayload @requireAuth @requirePermissions(permissions: ["table:view"])
+    tables(paging: PaginatorInput, params: TableFilter): TablesPayload! @requireAuth @requirePermissions(permissions: ["table:view"])
+}
+
+#------------------------
+# Schema mutations
+#------------------------
+extend type Mutation {
+    createTable(input: CreateTableInput!): SaveTablePayload @requireAuth @requirePermissions(permissions: ["table:create"])
+    updateTable(input: UpdateTableInput!): SaveTablePayload @requireAuth @requirePermissions(permissions: ["table:update"])
+    updateTableStatus(input: UpdateTableStatusInput!): SaveTablePayload @requireAuth @requirePermissions(permissions: ["table:update"])
+}
+
+#------------------------
+# Query types
+#------------------------
+input TableFilter {
+    searchText: String
+    categoryId: Int
+    status: TableStatus
+}
+type TablePayload {
+    data: Table
+    errors: [GlobalError]
+    status: Boolean
+    errorMessage: String
+}
+type TablesPayload {
+    list: [Table]
+    paging: PaginatorOutputUpdated
+}
+
+#------------------------
+# Mutations types
+#------------------------
+
+input CreateTableInput {
+    name: String!
+    categoryId: Int!
+    status: TableStatus
+}
+
+input UpdateTableInput {
+    id: ID!
+    name: String!
+    categoryId: Int!
+    status: TableStatus
+}
+
+input UpdateTableStatusInput {
+    id: ID!
+    status: TableStatus!
+}
+
+type SaveTablePayload {
+    data: Table
+    errors: GlobalError
+    status: Boolean
+    errorMessage: String
+}

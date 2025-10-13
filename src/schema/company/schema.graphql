@@ -1,0 +1,86 @@
+type Company {
+    uuid: String!
+    name: String!
+    description: String
+    email: String!
+    logo: String
+    phoneCode: String!
+    phoneNumber: String!
+    status: Status!
+    createdAt: Datetime!
+    updatedAt: Datetime!
+}
+
+type _Company {
+    uuid: String!
+    name: String!
+}
+
+#------------------------
+# Query
+#------------------------
+extend type Query {
+    company(id: ID!): CompanyPayload @requireAuth @requirePermissions(permissions: ["company:view"])
+    companies(paging: PaginatorInput, params: CompanyFilter): CompaniesPayload! @requireAuth @requirePermissions(permissions: ["company:view"])
+}
+
+#------------------------
+# Schema mutations
+#------------------------
+extend type Mutation {
+    createCompany(input: CreateCompanyInput!): SaveCompanyPayload @requireAuth @requirePermissions(permissions: ["company:create"])
+    updateCompany(input: UpdateCompanyInput!): SaveCompanyPayload @requireAuth @requirePermissions(permissions: ["company:update"])
+    updateCompanyStatus(input: UpdateCompanyStatusInput!): SaveCompanyPayload @requireAuth @requirePermissions(permissions: ["company:update"])
+}
+
+#------------------------
+# Query types
+#------------------------
+input CompanyFilter {
+    searchText: String
+}
+type CompanyPayload {
+    data: Company
+    errors: [GlobalError]
+    status: Boolean
+    errorMessage: String
+}
+type CompaniesPayload {
+    list: [Company]
+    paging: PaginatorOutputUpdated
+}
+
+#------------------------
+# Mutations types
+#------------------------
+
+input CreateCompanyInput {
+    name: String!
+    description: String
+    email: String!
+    logo: String
+    phoneCode: String!
+    phoneNumber: String!
+}
+
+input UpdateCompanyInput {
+    uuid: ID!
+    name: String!
+    description: String
+    email: String!
+    logo: String
+    phoneCode: String!
+    phoneNumber: String!
+}
+
+input UpdateCompanyStatusInput {
+    uuid: ID!
+    status: Status
+}
+
+type SaveCompanyPayload {
+    data: Company
+    errors: GlobalError
+    status: Boolean
+    errorMessage: String
+}
