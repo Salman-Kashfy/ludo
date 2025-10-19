@@ -46,9 +46,9 @@ export class User extends BaseEntity {
     @Column({ name: 'country_id', nullable: true })
     countryId: number;
 
-    @Column({ name: 'company_id', nullable: true })
+    @Column({ name: 'company_uuid', nullable: true })
     @Index()
-    companyId?: number;
+    companyUuid?: string;
 
     @Column({name: 'phone_code', nullable: true})
     @Length(1, 4)

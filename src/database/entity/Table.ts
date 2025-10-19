@@ -13,6 +13,9 @@ export class Table extends BaseEntity {
     @PrimaryGeneratedColumn()
     id!: number;
 
+    @Column('uuid', { unique: true, default: () => 'uuid_generate_v4()' })
+    uuid!: string;
+
     @Column()
     @Length(1, 75)
     name!: string;

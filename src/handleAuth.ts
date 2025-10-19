@@ -20,7 +20,7 @@ const handleAuth = async ({req}: any) => {
             }
             user = await connection.getRepository(UserEntity).findOne({
                 relations: ['role'],
-                where: { id:user.id }
+                where: { uuid:user.uuid }
             })
             if(user.status !== Status.ACTIVE){
                 throw new AuthenticationError('Account deactivated.');

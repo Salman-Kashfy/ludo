@@ -73,7 +73,7 @@ export default class User extends BaseModel {
         const errors: any = [];
         let errorMessage = '';
 
-        if(!(await accessRulesByRoleHierarchy(this.context, { companyId: input.companyId }))) {
+        if(!(await accessRulesByRoleHierarchy(this.context, { companyUuid: input.companyUuid }))) {
             return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
         }
 
@@ -127,7 +127,7 @@ export default class User extends BaseModel {
                 user.email = input.email;
                 user.password = input.password ? await hash(input.password, 10) : user.password;
                 user.countryId = input.countryId;
-                user.companyId = input.companyId;
+                user.companyUuid = input.companyUuid;
                 user.phoneCode = input.phoneCode;
                 user.phoneNumber = input.phoneNumber;
                 user.gender = input.gender;

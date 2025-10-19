@@ -1,22 +1,16 @@
 type Category {
-    id: ID!
+    uuid: ID!
     name: String!
     hourlyRate: Float!
     currencyName: String!
-}
-
-type _Category {
-    id: ID!
-    name: String!
-    hourlyRate: Float!
-    currencyName: String!
+    tables: [Table]
 }
 
 #------------------------
 # Query
 #------------------------
 extend type Query {
-    category(id: ID!): CategoryPayload @requireAuth @requirePermissions(permissions: ["category:view"])
+    category(uuid: ID!): CategoryPayload @requireAuth @requirePermissions(permissions: ["category:view"])
     categories(paging: PaginatorInput, params: CategoryFilter): CategoriesPayload! @requireAuth @requirePermissions(permissions: ["category:view"])
 }
 
@@ -51,11 +45,13 @@ type CategoriesPayload {
 
 input CreateCategoryInput {
     name: String!
+    companyId: String!
     hourlyRate: Float!
 }
 
 input UpdateCategoryInput {
-    id: ID!
+    uuid: ID!
+    companyId: String!
     name: String!
     hourlyRate: Float!
 }

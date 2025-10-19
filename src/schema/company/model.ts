@@ -32,7 +32,7 @@ export default class Role extends BaseModel {
             return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Company not found')
         }
 
-        if (!(await accessRulesByRoleHierarchy(this.context, {companyId: company.id}))) {
+        if (!(await accessRulesByRoleHierarchy(this.context, {companyUuid: uuid}))) {
             return this.formatErrors([GlobalError.NOT_ALLOWED],'Permission denied')
         }
 
@@ -51,6 +51,11 @@ export default class Role extends BaseModel {
     async saveValidate(input:CompanyInput) {
         let errors:any = [], errorMessage = null, data:any = {}
         if(input.uuid){
+
+            if (!(await accessRulesByRoleHierarchy(this.context, {companyUuid: input.uuid}))) {
+                return this.formatErrors([GlobalError.NOT_ALLOWED],'Permission denied')
+            }
+
             data.existingEntity = await this.context.company.repository.findOneBy({
                 uuid: input.uuid
             })
@@ -108,7 +113,7 @@ export default class Role extends BaseModel {
         if (!company) {
             return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Company not found')
         }
-        if (!(await accessRulesByRoleHierarchy(this.context, {companyId: company.id}))) {
+        if (!(await accessRulesByRoleHierarchy(this.context, {companyUuid: uuid}))) {
             return this.errorResponse(GlobalError.NOT_ALLOWED)
         }
         company.status = status

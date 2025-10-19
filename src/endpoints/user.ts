@@ -54,7 +54,7 @@ export const userLogin = async (req:Request, res:Response) => {
             role: { uuid: user.role.uuid, name: user.role.name },
             key, // country
         }
-        const token = sign({id: user.id, key}, jwtConfig.jwtSecretKey ,{ expiresIn: jwtConfig.accessTokenTTL })
+        const token = sign({uuid: user.uuid, key}, jwtConfig.jwtSecretKey ,{ expiresIn: jwtConfig.accessTokenTTL })
         const refreshToken = sign({id: user.id, key}, jwtConfig.jwtSecretKey ,{ expiresIn: jwtConfig.refreshTokenTTL })
         res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true, maxAge: jwtConfig.refreshTokenCookieExpiry });
         res.send({ token, status: true, message: 'Logged in successfully!', user: payload })

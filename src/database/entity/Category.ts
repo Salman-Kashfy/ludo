@@ -1,10 +1,14 @@
-import {Entity, PrimaryGeneratedColumn, Column, BaseEntity} from 'typeorm';
+import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany} from 'typeorm';
 import { Length, IsNumber, Min } from 'class-validator';
+import { Table } from './Table';
 
 @Entity({ name: 'categories' })
 export class Category extends BaseEntity {
     @PrimaryGeneratedColumn()
     id!: number;
+
+    @Column('uuid', { unique: true, default: () => 'uuid_generate_v4()' })
+    uuid!: string;
 
     @Column()
     @Length(1, 75)
@@ -17,4 +21,10 @@ export class Category extends BaseEntity {
 
     @Column({ default: 'PKR' })
     currencyName!: string;
+
+    /**
+     * Relations
+     */
+    @OneToMany(() => Table, table => table.category)
+    tables?: Table[];
 }

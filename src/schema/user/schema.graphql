@@ -9,7 +9,7 @@ type User {
     fullName: String
     email: String!
     countryId: Int!
-    companyId: Int
+    companyUuid: String
     phoneCode: String
     phoneNumber: String
     gender: Gender
@@ -41,7 +41,7 @@ type _User {
 # Query
 #------------------------
 extend type Query {
-    user(id: ID!): UserPayload @requireAuth @requirePermissions(permissions: ["user:view"])
+    user(uuid: ID!): UserPayload @requireAuth @requirePermissions(permissions: ["user:view"])
     users(paging: PaginatorInput, params: UserFilter): UsersPayload! @requireAuth @requirePermissions(permissions: ["user:view"])
 }
 

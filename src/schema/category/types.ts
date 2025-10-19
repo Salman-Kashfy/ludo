@@ -1,5 +1,6 @@
 export interface CategoryInput {
-    id?: number
+    uuid?: string
+    companyUuid: string
     name: string
     hourlyRate: number
 }

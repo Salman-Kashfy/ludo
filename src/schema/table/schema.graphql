@@ -5,7 +5,7 @@ enum TableStatus {
 }
 
 type Table {
-    id: ID!
+    uuid: ID!
     name: String!
     categoryId: Int!
     status: TableStatus!
@@ -13,7 +13,7 @@ type Table {
 }
 
 type _Table {
-    id: ID!
+    uuid: ID!
     name: String!
     status: TableStatus!
 }
@@ -22,7 +22,7 @@ type _Table {
 # Query
 #------------------------
 extend type Query {
-    table(id: ID!): TablePayload @requireAuth @requirePermissions(permissions: ["table:view"])
+    table(uuid: ID!): TablePayload @requireAuth @requirePermissions(permissions: ["table:view"])
     tables(paging: PaginatorInput, params: TableFilter): TablesPayload! @requireAuth @requirePermissions(permissions: ["table:view"])
 }
 
@@ -65,7 +65,7 @@ input CreateTableInput {
 }
 
 input UpdateTableInput {
-    id: ID!
+    uuid: ID!
     name: String!
     categoryId: Int!
     status: TableStatus

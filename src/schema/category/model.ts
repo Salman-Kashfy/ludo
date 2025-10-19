@@ -5,6 +5,7 @@ import Context from "../context";
 import {GlobalError} from "../root/enum";
 import {isEmpty} from "lodash";
 import {PagingInterface} from "../../interfaces";
+import { accessRulesByRoleHierarchy } from '../../shared/lib/DataRoleUtils';
 
 export default class Category extends BaseModel {
     repository: any;
@@ -15,18 +16,19 @@ export default class Category extends BaseModel {
     }
 
     async index(paging: PagingInterface, params: CategoryFilter) {
-        const _query = this.repository.createQueryBuilder('c');
+        const _query = this.repository.createQueryBuilder('c')
+            .leftJoinAndSelect('c.tables', 'tables');
         
-        if (!isEmpty(params.searchText)) {
+        if (!isEmpty(params?.searchText)) {
             _query.andWhere('c.name ILIKE :searchText', { searchText: `%${params.searchText}%` });
         }
 
         return await this.paginator(_query, paging);
     }
 
-    async show(id: number) {
+    async show(uuid: string) {
         try {
-            const data = await this.repository.findOne({ where: { id } });
+            const data = await this.repository.findOne({ where: { uuid } });
             return {
                 data,
                 status: true,
@@ -46,14 +48,8 @@ export default class Category extends BaseModel {
     async saveValidate(input: CategoryInput) {
         let errors: any = [], errorMessage = null, data: any = {};
 
-        if (isEmpty(input.name)) {
-            errors.push(GlobalError.REQUIRED_FIELDS_MISSING);
-            errorMessage = 'Name is required';
-        }
-
-        if (input.hourlyRate === undefined || input.hourlyRate === null || input.hourlyRate < 0) {
-            errors.push(GlobalError.REQUIRED_FIELDS_MISSING);
-            errorMessage = 'Hourly rate is required and must be a positive number';
+        if (!(await accessRulesByRoleHierarchy(this.context, {companyUuid: input.companyUuid}))) {
+            return this.formatErrors([GlobalError.NOT_ALLOWED],'Permission denied');
         }
 
         if (errors.length > 0) {
@@ -81,8 +77,8 @@ export default class Category extends BaseModel {
 
         try {
             let data;
-            if (input.id) {
-                data = await this.repository.findOne({ where: { id: input.id } });
+            if (input.uuid) {
+                data = await this.repository.findOne({ where: { uuid: input.uuid } });
                 if (!data) {
                     return {
                         data: null,

@@ -15,6 +15,7 @@ const CITY_ID = 83559
 const CATEGORY_ID = 1
 const TABLE_ID = 1
 const COMPANY_ID = 1
+const COMPANY_UUID = '550e8400-e29b-41d4-a716-446655440000' // Predefined UUID for the company
 
 import { roles } from './objects/roles';
 import { users } from './objects/users';
@@ -45,11 +46,11 @@ export const startSeeding = async () => {
         await connection.createQueryBuilder().insert().into(Role).values(Object.values(_roles)).execute();
         
         console.log('Adding Companies');
-        const _companies = companies({companyId: COMPANY_ID});
+        const _companies = companies({companyId: COMPANY_ID, companyUuid: COMPANY_UUID});
         await connection.createQueryBuilder().insert().into(Company).values(Object.values(_companies)).execute();
         
         console.log('Adding Users');
-        const _users = await users({passwordHash, countryId:COUNTRY_ID, companyId: COMPANY_ID});
+        const _users = await users({passwordHash, countryId:COUNTRY_ID, companyUuid: COMPANY_UUID});
         await connection.createQueryBuilder().insert().into(User).values(Object.values(_users)).execute();
         
         console.log('Adding User Roles');
