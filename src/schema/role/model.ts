@@ -17,7 +17,7 @@ export default class Role extends BaseModel {
 
     async index() {
         const list = await this.repository.find({
-            where: { status: Status.ACTIVE, name: Not(RoleNames.SUPER_ADMIN) }
+            where: { status: Status.ACTIVE }
         })
         return { list };
     }

@@ -63,13 +63,24 @@ export default class BaseModel {
             if (paging.page < 0) {
                 paging.page;
             }
+            
+            // If limit is 0, treat it as "return all records"
+            if (paging.limit === 0) {
+                paging.limit = null;
+            }
+            
             const cnt = await query.getCount();
-            paging.totalPages = paging.limit ? Math.ceil(cnt / paging.limit) : 0;
+            paging.totalPages = paging.limit ? Math.ceil(cnt / paging.limit) : 1;
             paging.totalResultCount = cnt;
-            list = await queryBuilder
-                .skip(paging.page * paging.limit)
-                .take(paging.limit)
-                .getMany();
+            
+            if (paging.limit) {
+                list = await queryBuilder
+                    .skip(paging.page * paging.limit)
+                    .take(paging.limit)
+                    .getMany();
+            } else {
+                list = await queryBuilder.getMany();
+            }
         } else {
             const dataLength = await query.getCount();
             paging = {

@@ -79,21 +79,9 @@ export function getFakeAuth() {
         admin: true,
     }
     switch (authProfile) {
-        case Roles.SUPER_ADMIN:
-            auth.id = SEED_USERS.SUPER_ADMIN.ID
-            auth.role = Roles.SUPER_ADMIN;
-            break
         case Roles.ADMIN:
             auth.id = SEED_USERS.ADMIN.ID
             auth.role = Roles.ADMIN;
-            break
-        case Roles.HR_ADMIN:
-            auth.id = SEED_USERS.HR_ADMIN.ID
-            auth.role = Roles.HR_ADMIN;
-            break
-        case Roles.MANAGER:
-            auth.id = SEED_USERS.MANAGER.ID
-            auth.role = Roles.MANAGER;
             break
         case Roles.EMPLOYEE:
             auth.id = SEED_USERS.EMPLOYEE.ID
@@ -122,19 +110,13 @@ export const tapConfig = {
 };
 
 export const SEED_USERS = {
-    SUPER_ADMIN: { ID: 1, NAME: 'HRM' },
-    ADMIN: { ID: 2, NAME: 'Salman Kashfy' },
-    HR_ADMIN: { ID: 3, NAME: 'Manahil Salman' },
-    MANAGER: { ID: 4, NAME: 'Shahzain Kashfy' },
-    EMPLOYEE: { ID: 5, NAME: 'Max Payne' },
+    ADMIN: { ID: 1, NAME: 'Admin User' },
+    EMPLOYEE: { ID: 2, NAME: 'Employee User' },
 }
 
 export const ROLES = {
-    SUPER_ADMIN: { ID: 1, NAME: Roles.SUPER_ADMIN, DISPLAY_NAME: RoleNames.SUPER_ADMIN },
-    ADMIN: { ID: 2, NAME: Roles.ADMIN, DISPLAY_NAME: RoleNames.ADMIN },
-    HR_ADMIN: { ID: 3, NAME: Roles.HR_ADMIN, DISPLAY_NAME: RoleNames.HR_ADMIN },
-    MANAGER: { ID: 4, NAME: Roles.MANAGER, DISPLAY_NAME: RoleNames.MANAGER },
-    EMPLOYEE: { ID: 5, NAME: Roles.EMPLOYEE, DISPLAY_NAME: RoleNames.EMPLOYEE },
+    ADMIN: { ID: 1, NAME: Roles.ADMIN, DISPLAY_NAME: RoleNames.ADMIN },
+    EMPLOYEE: { ID: 2, NAME: Roles.EMPLOYEE, DISPLAY_NAME: RoleNames.EMPLOYEE },
 }
 
 export function getBasePath() {

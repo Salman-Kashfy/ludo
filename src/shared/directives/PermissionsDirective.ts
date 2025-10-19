@@ -24,7 +24,7 @@ export function registerDirective(schema: GraphQLSchema) {
                         const role = context.user.role
                         permissions = permissions.filter((el: string) => el).map((el: string) => el.toLowerCase().trim());
 
-                        if(role.name !== Roles.SUPER_ADMIN){
+                        if(role.name !== Roles.ADMIN){
                             const rolePermission = await context.rolePermission.repository.find({
                                 relations: ['permission'],
                                 where: { roleId: role.id }

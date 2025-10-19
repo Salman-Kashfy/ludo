@@ -8,7 +8,9 @@
         "build": "tsc -p . && copyfiles -u 1 ./src/**/*.graphql ./src/**/*.ejs ./dist",
         "schema:generate": "yarn build && node ./dist/database/createSchemas.js",
         "migrations:run": "yarn build && typeorm migration:run -d ./dist/ormconfig.js ",
-        "seed:db": "node ./dist/database/seed.js"
+        "seed:db": "node ./dist/database/seed.js",
+        "clear:db": "yarn build && node ./dist/database/resetDb.js",
+        "reset:db": "yarn clear:db && yarn schema:generate && yarn migrations:run && node ./dist/database/seed.js"
     },
     "dependencies": {
         "@graphql-tools/graphql-file-loader": "^8.0.0",

@@ -1,16 +1,17 @@
 import {Roles} from "../../database/entity/root/enums";
 import Context from "../../schema/context";
+import { allowFilterPerRole } from "../config";
 
-export function isSuperAdmin(user: any) {
+export function isAdmin(user: any) {
     try {
         if (!user) {
             throw new Error('No user found');
         }
-        if (user.role.find((e:any) => e.name === Roles.SUPER_ADMIN)) {
+        if (user.role.find((e:any) => e.name === Roles.ADMIN)) {
             return true;
         }
     } catch (error) {
-        console.log('isSuperAdminOrPlatformTeamAdmin', error);
+        console.log('isAdmin', error);
     }
     return false;
 }
@@ -24,7 +25,7 @@ export function accessRulesByRoleHierarchy(ctx: Context, { companyId }: { compan
 
     const role = user.role?.name;
     switch (role) {
-        case Roles.SUPER_ADMIN:
+        case Roles.ADMIN:
             return true;
 
         default:
@@ -36,7 +37,7 @@ export function accessRulesByRoleHierarchy(ctx: Context, { companyId }: { compan
 export function addQueryBuilderFilters(ctx:Context, query:any, params:any, companyIdField:string = 'companyId') {
     try {
         const user:any = ctx.user
-        if (user.role.name === Roles.SUPER_ADMIN) {
+        if (user.role.name === Roles.ADMIN) {
             return { query, params };
         }
 
@@ -47,5 +48,48 @@ export function addQueryBuilderFilters(ctx:Context, query:any, params:any, compa
         return { query, params };
     } catch (error) {
         console.log('addQueryBuilderFilters', error);
+    }
+}
+
+export async function addQueryBuilderFiltersForCompanies(
+    context: any,
+    query: any,
+    params: any,
+    companyIdField: string = 'companyId'
+): Promise<{ query: any; params: any }> {
+    try {
+        params = params || {};
+
+        if (!allowFilterPerRole) {
+            return { query, params };
+        }
+
+        const user = context.user;
+
+        // Check if role is an array or single object
+        const userRole = Array.isArray(user.role) ? user.role[0] : user.role;
+        
+        // ADMIN role has access to all companies
+        if (userRole?.name === Roles.ADMIN) {
+            return { query, params };
+        }
+
+        // EMPLOYEE role is restricted to their own company
+        if (userRole?.name === Roles.EMPLOYEE) {
+            const queryName = query.expressionMap.mainAlias.name;
+            query.andWhere('"' + queryName + '"."' + companyIdField + '" = :companyId');
+            params.companyId = user.companyId;
+            return { query, params };
+        }
+
+        // If no valid role, restrict access
+        query.andWhere('(false)');
+        return { query, params };
+
+    } catch (error: any) {
+        console.log('Error filtering companies by user role: ' + JSON.stringify(error.message));
+        // On error, restrict access for safety
+        query.andWhere('(false)');
+        return { query, params };
     }
 }

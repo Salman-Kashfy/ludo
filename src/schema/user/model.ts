@@ -1,5 +1,6 @@
 import BaseModel from '../baseModel';
 import {User as UserEntity} from '../../database/entity/User';
+import {Role} from '../../database/entity/Role';
 import {OtpError} from "../otp/enum";
 import {hash} from "bcrypt";
 import {InviteParams, UserFilter} from "./interfaces";
@@ -181,6 +182,14 @@ export default class User extends BaseModel {
 
     async validateInvite(inviteLink:string){
         return this.repository.findOneBy({ inviteLink, inviteExpiry: MoreThanOrEqual(new Date())})
+    }
+
+    async userPermissions(role:Role){
+        const userPermissions = await this.context.rolePermission.repository.find({
+            relations: ['permission'],
+            where: { roleId: role.id }
+        })
+        return userPermissions.map((rp:any) => rp.permission.name)
     }
 
 }

@@ -5,10 +5,8 @@ type Role {
 }
 
 enum Roles {
-	SUPER_ADMIN
-	BRAND_ADMIN
-	GYM_ADMIN
-	PT_ADMIN
+	ADMIN
+	EMPLOYEE
 }
 
 extend type Query {

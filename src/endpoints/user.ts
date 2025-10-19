@@ -9,8 +9,9 @@ import RedisClient from "../database/redis";
 import {AuthenticationError} from "apollo-server-express";
 import {MulterError} from "multer";
 import {_deleteFile} from "../shared/lib/util";
-import {RoleNames, Status} from "../database/entity/root/enums";
-import {Country} from "../database/entity/Country";
+import {Roles, Status} from "../database/entity/root/enums";
+import schema from "../shared/directives/loadSchema";
+import Context from '../schema/context';
 
 export const userLogin = async (req:Request, res:Response) => {
     try{
@@ -158,4 +159,17 @@ export const deleteFile = async (req:Request, res:Response) => {
     }
     const response = await _deleteFile(TEMP_DIR_PATH+'/'+req.body.filename)
     return res.status(200).json(response)
+}
+
+export const userPermissions = async (req:Request, res:Response) => {
+    const role:any = req.user.role
+    if(role.name === Roles.ADMIN){
+        res.send({ status: true, message: 'Data fetched successfully!', data: ['*'] })
+        return
+    }
+
+    const ctx = Context.getInstance(connection,schema,req,req.user)
+    const permissions = await ctx.user.userPermissions(role)
+
+    res.send({ status: true, message: 'Data fetched successfully!', data: permissions })
 }

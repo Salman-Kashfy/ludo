@@ -5,7 +5,7 @@ import Context from "../context";
 import {GlobalError} from "../root/enum";
 import {isEmpty} from "lodash";
 import {PagingInterface} from "../../interfaces";
-import {accessRulesByRoleHierarchy, addQueryBuilderFilters} from "../../shared/lib/DataRoleUtils";
+import {accessRulesByRoleHierarchy, addQueryBuilderFiltersForCompanies} from "../../shared/lib/DataRoleUtils";
 
 export default class Role extends BaseModel {
     repository: any;
@@ -17,10 +17,10 @@ export default class Role extends BaseModel {
 
     async index(paging: PagingInterface, params: CompanyFilter) {
         const _query = this.repository.createQueryBuilder('c');
-        let { query }:any = addQueryBuilderFilters(this.context,_query,params, 'id')
-        query = this.resolveParamsToFilters(query, params);
-        query.orderBy('c.name', 'ASC');
-        return this.paginator(query, paging);
+        const { query, params: filteredParams } = await addQueryBuilderFiltersForCompanies(this.context, _query, params, 'id');
+        const finalQuery = this.resolveParamsToFilters(query, filteredParams);
+        finalQuery.orderBy('c.name', 'ASC');
+        return this.paginator(finalQuery, paging);
     }
 
     /**

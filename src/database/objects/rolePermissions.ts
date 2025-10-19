@@ -5,7 +5,7 @@ import {EMPLOYEE_PERMISSIONS} from "../../shared/permissions/employee";
 
 const _rolePermissions = [
     {
-        roleId: ROLES.SUPER_ADMIN.ID,
+        roleId: ROLES.ADMIN.ID,
         permissionId: PERMISSIONS.ALL.ID,
     }
 ]

@@ -3,7 +3,7 @@ import cookieParser from 'cookie-parser'
 import {ApolloServer, Config, ExpressContext} from 'apollo-server-express';
 import schema from './shared/directives/loadSchema';
 import connection from "./database/connection";
-import { userLogin, userLogout, refreshToken } from "./endpoints/user";
+import { userLogin, userLogout, refreshToken, userPermissions } from "./endpoints/user";
 import { createOtp, verifyOtp, invite, validateInvite, resetPassword } from "./endpoints/reset.password";
 import {basePath, disableAuthAccess, disableGraphqlIntrospection, getFakeAuth, NODE_ENV} from './shared/config'
 import { config }  from "dotenv"
@@ -27,7 +27,7 @@ app.use(bodyParser.json());
 /**
 * Configure cors. Whitelist origins for storing http only cookie on client-side.
 * */
-const allowedOrigins = ['https://app.cloudfitnest.com','https://dev.cloudfitnest.com','https://studio.apollographql.com','https://localhost','https://localhost:3000'];
+const allowedOrigins = ['https://app.cloudfitnest.com','https://dev.cloudfitnest.com','https://studio.apollographql.com','https://localhost','https://localhost:4000'];
 const corsOptions = {
     origin: allowedOrigins,
     optionsSuccessStatus: 200,
@@ -83,6 +83,7 @@ declare module 'express' {
         })
         app.post(`/${prefix}/login`, userLogin)
         app.post(`/${prefix}/logout`, userLogout)
+        app.get(`/${prefix}/user-permissions`, Auth, userPermissions)
         app.post(`/${prefix}/refresh-token`, refreshToken)
         app.post(`/${prefix}/create-otp`, createOtp)
         app.post(`/${prefix}/verify-otp`, verifyOtp)
