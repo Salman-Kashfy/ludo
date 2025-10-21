@@ -1,6 +1,5 @@
 import BaseModel from '../baseModel';
 import { TableSession as TableSessionEntity, TableSessionStatus } from '../../database/entity/TableSession';
-import { TableStatus } from '../../database/entity/Table';
 import { InvoiceStatus } from '../../database/entity/Invoice';
 import { StartTableSessionInput, EndTableSessionInput, TableSessionFilter } from './types';
 import Context from "../context";
@@ -100,16 +99,13 @@ export default class TableSession extends BaseModel {
             errorMessage = 'Customer not found';
         }
 
-        // Validate table exists and is available
+        // Validate table exists
         data.table = await this.context.table.repository.findOne({
             where: { id: input.tableId }
         });
         if (!data.table) {
             errors.push(GlobalError.RECORD_NOT_FOUND);
             errorMessage = 'Table not found';
-        } else if (data.table.status !== TableStatus.AVAILABLE) {
-            errors.push(GlobalError.INVALID_INPUT);
-            errorMessage = 'Table is not available';
         }
 
         // Check if table already has an active session
@@ -159,11 +155,6 @@ export default class TableSession extends BaseModel {
             });
 
             const savedSession = await this.repository.save(session);
-
-            // Update table status to OCCUPIED
-            await this.context.table.repository.update(input.tableId, {
-                status: TableStatus.OCCUPIED
-            });
 
             return {
                 data: savedSession,
@@ -230,11 +221,6 @@ export default class TableSession extends BaseModel {
 
                 await transactionalEntityManager.save(invoice);
 
-                // Update table status to AVAILABLE
-                await transactionalEntityManager.update(this.context.table.repository.target, session.tableId, {
-                    status: TableStatus.AVAILABLE
-                });
-
                 return updatedSession;
             });
 
@@ -267,11 +253,6 @@ export default class TableSession extends BaseModel {
             // Update session status
             session.status = TableSessionStatus.CANCELLED;
             const updatedSession = await this.repository.save(session);
-
-            // Update table status to AVAILABLE
-            await this.context.table.repository.update(session.tableId, {
-                status: TableStatus.AVAILABLE
-            });
 
             return this.successResponse(updatedSession);
         } catch (error: any) {
