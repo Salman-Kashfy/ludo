@@ -1,7 +1,7 @@
 enum TableStatus {
-    AVAILABLE
-    OCCUPIED
-    RESERVED
+    available
+    occupied
+    reserved
 }
 
 type Table {
@@ -10,6 +10,7 @@ type Table {
     categoryId: Int!
     status: TableStatus!
     category: Category!
+    tableSessions: [TableSession]
 }
 
 type _Table {

@@ -22,6 +22,11 @@ const handleAuth = async ({req}: any) => {
                 relations: ['role'],
                 where: { uuid:user.uuid }
             })
+
+            if(!user){
+                throw new AuthenticationError('User not found.');
+            }
+
             if(user.status !== Status.ACTIVE){
                 throw new AuthenticationError('Account deactivated.');
             }

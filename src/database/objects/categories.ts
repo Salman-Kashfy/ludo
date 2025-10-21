@@ -1,25 +1,31 @@
 import {Status} from "../entity/root/enums";
 
 interface CategoryInput {
-    categoryId:number
+    regularCategoryId:number
+    specialCategoryId:number
+    premiumCategoryId:number
+    companyId:number
 }
 export const categories = (input:CategoryInput) => [
         {
-            id: input.categoryId,
+            id: input.regularCategoryId,
             name: 'Regular',
             hourlyRate: 500,
-            currencyName: 'PKR'
+            currencyName: 'PKR',
+            companyId: input.companyId
         },
         {
-            id: 2,
+            id: input.specialCategoryId,
             name: 'Special',
             hourlyRate: 1000,
-            currencyName: 'PKR'
+            currencyName: 'PKR',
+            companyId: input.companyId
         },
         {
-            id: 3,
+            id: input.premiumCategoryId,
             name: 'Premium',
             hourlyRate: 2000,
-            currencyName: 'PKR'
+            currencyName: 'PKR',
+            companyId: input.companyId
         },
 ]

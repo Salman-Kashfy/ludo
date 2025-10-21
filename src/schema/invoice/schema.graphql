@@ -20,7 +20,7 @@ type Invoice {
     
     # Relations
     customer: _Customer!
-    tableSession: _TableSession
+    tableSession: TableSession
 }
 
 type _Invoice {

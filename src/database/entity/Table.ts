@@ -1,6 +1,8 @@
-import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, JoinColumn} from 'typeorm';
+import {Entity, PrimaryGeneratedColumn, Column, Index,BaseEntity, ManyToOne, JoinColumn, OneToMany} from 'typeorm';
 import { Length } from 'class-validator';
 import { Category } from './Category';
+import { TableSession } from './TableSession';
+import { Company } from './Company';
 
 export enum TableStatus {
     AVAILABLE = 'available',
@@ -21,7 +23,12 @@ export class Table extends BaseEntity {
     name!: string;
 
     @Column({ name: 'category_id' })
+    @Index()
     categoryId!: number;
+    
+    @Column({ name: 'company_id' })
+    @Index()
+    companyId!: number;
 
     @Column({ 
         type: 'enum', 
@@ -36,4 +43,11 @@ export class Table extends BaseEntity {
     @ManyToOne(() => Category)
     @JoinColumn({ name: 'category_id', referencedColumnName: 'id' })
     category!: Category;
+
+    @ManyToOne(() => Company, company => company.uuid)
+    @JoinColumn({ name: 'company_id' })
+    company!: Company;
+
+    @OneToMany(() => TableSession, tableSession => tableSession.table)
+    tableSessions?: TableSession[];
 }

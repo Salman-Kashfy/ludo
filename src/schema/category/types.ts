@@ -6,5 +6,6 @@ export interface CategoryInput {
 }
 
 export interface CategoryFilter {
+    companyUuid: string
     searchText?: string
 }

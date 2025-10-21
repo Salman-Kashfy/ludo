@@ -13,15 +13,18 @@ import {
   import { Table } from './Table';
 
 export enum TableSessionStatus {
-    ACTIVE = 'ACTIVE',
-    COMPLETED = 'COMPLETED',
-    CANCELLED = 'CANCELLED',
+    ACTIVE = 'active',
+    COMPLETED = 'completed',
+    CANCELLED = 'cancelled',
 }
   
   @Entity({ name: 'table_sessions' })
   export class TableSession {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+    @PrimaryGeneratedColumn()
+    id!: number;
+
+    @Column('uuid', { unique: true, default: () => 'uuid_generate_v4()' })
+    uuid!: string;
 
     @Column({ name: 'customer_id' })
     @Index()

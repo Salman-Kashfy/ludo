@@ -5,8 +5,8 @@ export default {
         category(root: any, {id}: any, context:Context) {
             return context.category.show(id);
         },
-        categories(root: any, {paging, params}: any, context:Context) {
-            return context.category.index(paging, params);
+        categories(root: any, {params}: any, context:Context) {
+            return context.category.index(params);
         }
     },
     Mutation: {

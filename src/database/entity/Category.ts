@@ -1,4 +1,4 @@
-import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany} from 'typeorm';
+import {Entity, PrimaryGeneratedColumn, Index, Column, BaseEntity, OneToMany} from 'typeorm';
 import { Length, IsNumber, Min } from 'class-validator';
 import { Table } from './Table';
 
@@ -22,9 +22,14 @@ export class Category extends BaseEntity {
     @Column({ default: 'PKR' })
     currencyName!: string;
 
+    @Column({ name: 'company_id' })
+    @Index()
+    companyId!: number;
+
     /**
      * Relations
      */
     @OneToMany(() => Table, table => table.category)
     tables?: Table[];
+
 }

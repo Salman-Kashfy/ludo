@@ -11,7 +11,7 @@ type Category {
 #------------------------
 extend type Query {
     category(uuid: ID!): CategoryPayload @requireAuth @requirePermissions(permissions: ["category:view"])
-    categories(paging: PaginatorInput, params: CategoryFilter): CategoriesPayload! @requireAuth @requirePermissions(permissions: ["category:view"])
+    categories(params: CategoryFilter): CategoriesPayload! @requireAuth @requirePermissions(permissions: ["category:view"])
 }
 
 #------------------------
@@ -26,6 +26,7 @@ extend type Mutation {
 # Query types
 #------------------------
 input CategoryFilter {
+    companyUuid: ID!
     searchText: String
 }
 type CategoryPayload {
@@ -36,7 +37,6 @@ type CategoryPayload {
 }
 type CategoriesPayload {
     list: [Category]
-    paging: PaginatorOutputUpdated
 }
 
 #------------------------
@@ -45,13 +45,13 @@ type CategoriesPayload {
 
 input CreateCategoryInput {
     name: String!
-    companyId: String!
+    companyUuid: ID!
     hourlyRate: Float!
 }
 
 input UpdateCategoryInput {
     uuid: ID!
-    companyId: String!
+    companyUuid: ID!
     name: String!
     hourlyRate: Float!
 }
