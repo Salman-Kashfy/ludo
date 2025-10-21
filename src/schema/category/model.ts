@@ -32,7 +32,10 @@ export default class Category extends BaseModel {
         
         const _query = this.repository.createQueryBuilder('c')
             .leftJoinAndSelect('c.tables', 't')
-            .leftJoinAndSelect('t.tableSessions', 'ts', 'ts.status = :activeStatus', { activeStatus: TableSessionStatus.ACTIVE })
+            .leftJoinAndSelect('t.tableSessions', 'ts', 'ts.status IN (:...activeStatuses)', { 
+                activeStatuses: [TableSessionStatus.ACTIVE, TableSessionStatus.BOOKED] 
+            })
+            .leftJoinAndSelect('ts.customer', 'customer')
             .andWhere('c.companyId = :companyId', { companyId: company.id })
         
         if (!isEmpty(params?.searchText)) {
