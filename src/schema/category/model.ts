@@ -5,7 +5,6 @@ import {CategoryInput, CategoryFilter} from './types';
 import Context from "../context";
 import {GlobalError} from "../root/enum";
 import {isEmpty} from "lodash";
-import {PagingInterface} from "../../interfaces";
 import { accessRulesByRoleHierarchy } from '../../shared/lib/DataRoleUtils';
 import { TableSessionStatus } from '../../database/entity/TableSession';
 

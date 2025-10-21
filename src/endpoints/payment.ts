@@ -7,9 +7,8 @@ import { accessRulesByRoleHierarchy } from '../shared/lib/DataRoleUtils';
 
 export const tableSessionBilling = async (req: any, res: Response) => {
     try {
-        const context = req.context as Context;
-        const input: TableSessionBillingInput = req.body;
 
+        const input:TableSessionBillingInput = req.body;
         if (!input.tableUuid || !input.customerUuid || !input.hours || !input.companyUuid) {
             return res.status(400).json({
                 success: false,
@@ -36,7 +35,7 @@ export const tableSessionBilling = async (req: any, res: Response) => {
         }
 
         // Process table session billing
-        const result = await context.payment.tableSessionBilling(input);
+        const result = await ctx.payment.tableSessionBilling(input);
 
         if (!result.status) {
             return res.status(400).json({

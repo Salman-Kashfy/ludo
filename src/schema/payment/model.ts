@@ -5,6 +5,7 @@ import Context from "../context";
 import { GlobalError } from "../root/enum";
 import { isEmpty } from "lodash";
 import { PagingInterface } from "../../interfaces";
+import { TableSessionBillingInput } from './types';
 
 export default class Payment extends BaseModel {
     repository: any;
@@ -211,14 +212,9 @@ export default class Payment extends BaseModel {
         }
     }
 
-    async tableSessionBilling(input: { tableUuid: string; customerUuid: string; hours: number }) {
+    async tableSessionBilling(input: TableSessionBillingInput) {
         try {
-            // Validate inputs
-            if (!input.tableUuid || !input.customerUuid || !input.hours || input.hours < 1) {
-                return this.formatErrors(GlobalError.INVALID_INPUT, 'Invalid input parameters');
-            }
-
-            // Get table with category to get hourly rate
+           
             const table = await this.context.table.repository.findOne({
                 where: { uuid: input.tableUuid },
                 relations: ['category']
