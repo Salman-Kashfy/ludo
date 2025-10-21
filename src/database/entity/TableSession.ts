@@ -20,6 +20,7 @@ export enum TableSessionStatus {
 }
   
   @Entity({ name: 'table_sessions' })
+  @Index(['tableId', 'status'], { unique: true, where: "status IN ('booked', 'active')" })
   export class TableSession {
     @PrimaryGeneratedColumn()
     id!: number;
