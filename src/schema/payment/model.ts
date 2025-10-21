@@ -1,5 +1,6 @@
 import BaseModel from '../baseModel';
-import { Payment as PaymentEntity, PaymentStatus } from '../../database/entity/Payment';
+import { Payment as PaymentEntity, PaymentStatus, BillingStatus } from '../../database/entity/Payment';
+import { TableSessionStatus } from '../../database/entity/TableSession';
 import Context from "../context";
 import { GlobalError } from "../root/enum";
 import { isEmpty } from "lodash";
@@ -205,6 +206,68 @@ export default class Payment extends BaseModel {
             const payment = this.repository.create(input);
             const savedPayment = await this.repository.save(payment);
             return this.successResponse(savedPayment);
+        } catch (error: any) {
+            return this.formatErrors(GlobalError.INTERNAL_SERVER_ERROR, error.message);
+        }
+    }
+
+    async tableSessionBilling(input: { tableUuid: string; customerUuid: string; hours: number }) {
+        try {
+            // Validate inputs
+            if (!input.tableUuid || !input.customerUuid || !input.hours || input.hours < 1) {
+                return this.formatErrors(GlobalError.INVALID_INPUT, 'Invalid input parameters');
+            }
+
+            // Get table with category to get hourly rate
+            const table = await this.context.table.repository.findOne({
+                where: { uuid: input.tableUuid },
+                relations: ['category']
+            });
+
+            if (!table) {
+                return this.formatErrors(GlobalError.RECORD_NOT_FOUND, 'Table not found');
+            }
+
+            // Get customer
+            const customer = await this.context.customer.repository.findOne({
+                where: { uuid: input.customerUuid }
+            });
+
+            if (!customer) {
+                return this.formatErrors(GlobalError.RECORD_NOT_FOUND, 'Customer not found');
+            }
+
+            const hourlyRate = table.category.hourlyRate;
+            const totalAmount = input.hours * hourlyRate;
+            const isMinimumPayment = input.hours === 1;
+
+            // Return billing preview only
+            const billingPreview = {
+                table: {
+                    uuid: table.uuid,
+                    name: table.name,
+                    category: {
+                        id: table.category.id,
+                        name: table.category.name,
+                        hourlyRate: table.category.hourlyRate
+                    }
+                },
+                customer: {
+                    uuid: customer.uuid,
+                    firstName: customer.firstName,
+                    lastName: customer.lastName
+                },
+                billing: {
+                    hours: input.hours,
+                    hourlyRate: hourlyRate,
+                    totalAmount: totalAmount,
+                    currencyName: table.category.currencyName,
+                    billingStatus: isMinimumPayment ? BillingStatus.MINIMUM_PAID : BillingStatus.FULLY_PAID,
+                    isMinimumPayment: isMinimumPayment
+                }
+            };
+
+            return this.successResponse(billingPreview);
         } catch (error: any) {
             return this.formatErrors(GlobalError.INTERNAL_SERVER_ERROR, error.message);
         }

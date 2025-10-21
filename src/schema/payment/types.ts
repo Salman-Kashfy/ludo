@@ -22,3 +22,10 @@ export interface PaymentFilter {
     status?: PaymentStatus
     method?: PaymentMethod
 }
+
+export interface TableSessionBillingInput {
+    tableUuid: string
+    customerUuid: string
+    hours: number
+    companyUuid: string
+}

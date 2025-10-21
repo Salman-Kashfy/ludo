@@ -7,7 +7,7 @@ export default {
         },
         payments(root: any, {paging, params}: any, context:Context) {
             return context.payment.index(paging, params);
-        }
+        },
     },
     Mutation: {
         createPayment(root: any, {input}:any, context:Context) {

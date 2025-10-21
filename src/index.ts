@@ -6,6 +6,7 @@ import connection from "./database/connection";
 import { userLogin, userLogout, refreshToken, userPermissions } from "./endpoints/user";
 import { createOtp, verifyOtp, invite, validateInvite, resetPassword } from "./endpoints/reset.password";
 import { tableStats } from "./endpoints/dashboard";
+import { tableSessionBilling } from "./endpoints/payment";
 import {basePath, disableAuthAccess, disableGraphqlIntrospection, getFakeAuth, NODE_ENV} from './shared/config'
 import { config }  from "dotenv"
 import Context from "./schema/context";
@@ -92,6 +93,7 @@ declare module 'express' {
         app.post(`/${prefix}/invite`, invite)
         app.get(`/${prefix}/validate-invite`, validateInvite)
         app.get(`/${prefix}/table-stats`, Auth, tableStats)
+        app.get(`/${prefix}/table-session-billing`, Auth, tableSessionBilling)
 
         /**
          * Provide schema and resolvers to apollo server instance.
