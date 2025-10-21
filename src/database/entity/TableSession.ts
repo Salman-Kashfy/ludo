@@ -13,6 +13,7 @@ import {
   import { Table } from './Table';
 
 export enum TableSessionStatus {
+    BOOKED = 'booked',
     ACTIVE = 'active',
     COMPLETED = 'completed',
     CANCELLED = 'cancelled',
@@ -34,16 +35,14 @@ export enum TableSessionStatus {
     @Index()
     tableId: number;
   
-    @Column({ type: 'timestamp', name: 'start_time', default: () => 'CURRENT_TIMESTAMP' })
-    startTime: Date;
+    @Column({ type: 'timestamp', name: 'start_time', nullable: true })
+    startTime: Date | null;
   
     @Column({ type: 'timestamp', name: 'end_time', nullable: true })
     endTime: Date | null;
   
-    @Column({ type: 'numeric', name: 'total_amount', precision: 10, scale: 2, nullable: true })
-    totalAmount: number | null;
   
-    @Column({ type: 'enum', enum: TableSessionStatus, default: TableSessionStatus.ACTIVE })
+    @Column({ type: 'enum', enum: TableSessionStatus, default: TableSessionStatus.BOOKED })
     status: TableSessionStatus;
   
     @CreateDateColumn({ name: 'created_at' })

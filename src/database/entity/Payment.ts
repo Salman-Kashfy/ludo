@@ -10,6 +10,7 @@ import {
   } from 'typeorm';
   import { Invoice } from './Invoice';
   import { Customer } from './Customer';
+  import { TableSession } from './TableSession';
 
 export enum PaymentMethod {
     CASH = 'CASH',
@@ -21,6 +22,11 @@ export enum PaymentStatus {
     COMPLETED = 'COMPLETED',
     REFUNDED = 'REFUNDED',
     PARTIALLY_REFUNDED = 'PARTIALLY_REFUNDED',
+}
+
+export enum BillingStatus {
+    MINIMUM_PAID = 'MINIMUM_PAID',
+    FULLY_PAID = 'FULLY_PAID',
 }
   
   @Entity({ name: 'payments' })
@@ -35,6 +41,10 @@ export enum PaymentStatus {
     @Column({ name: 'invoice_id', nullable: true })
     @Index()
     invoiceId: string | null;
+
+    @Column({ name: 'table_session_id', nullable: true })
+    @Index()
+    tableSessionId: number | null;
   
     @Column({ type: 'numeric', precision: 10, scale: 2 })
     amount: number;
@@ -52,6 +62,13 @@ export enum PaymentStatus {
       default: PaymentStatus.COMPLETED,
     })
     status: PaymentStatus;
+
+    @Column({
+      type: 'enum',
+      enum: BillingStatus,
+      nullable: true,
+    })
+    billingStatus: BillingStatus | null;
 
     @Column({ type: 'varchar', length: 255, nullable: true })
     refundNote: string | null;
@@ -76,5 +93,9 @@ export enum PaymentStatus {
     @ManyToOne(() => Customer, { nullable: false })
     @JoinColumn({ name: 'customer_id' })
     customer: Customer;
+
+    @ManyToOne(() => TableSession, { nullable: true })
+    @JoinColumn({ name: 'table_session_id' })
+    tableSession: TableSession | null;
   }
   
