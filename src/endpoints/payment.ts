@@ -7,17 +7,16 @@ import { accessRulesByRoleHierarchy } from '../shared/lib/DataRoleUtils';
 
 export const tableSessionBilling = async (req: any, res: Response) => {
     try {
-
-        const input:TableSessionBillingInput = req.body;
-        if (!input.tableUuid || !input.customerUuid || !input.hours || !input.companyUuid) {
+        const ctx = Context.getInstance(connection,schema,req,req.user);
+        const input:TableSessionBillingInput = req.query;
+        if (!input.tableUuid || !input.hours || !input.companyUuid) {
             return res.status(400).json({
                 success: false,
-                message: 'Missing required fields: tableUuid, customerUuid, hours, companyUuid',
+                message: 'Missing required fields: tableUuid, hours, companyUuid',
                 errors: ['INVALID_INPUT']
             });
         }
 
-        const ctx = Context.getInstance(connection,schema,req);
         if(!await accessRulesByRoleHierarchy(ctx, { companyUuid: input.companyUuid })) {
             return res.status(403).json({
                 success: false,
@@ -39,17 +38,13 @@ export const tableSessionBilling = async (req: any, res: Response) => {
 
         if (!result.status) {
             return res.status(400).json({
-                success: false,
+                status: false,
                 message: (result as any).errorMessage || 'Billing processing failed',
                 errors: (result as any).errors || ['UNKNOWN_ERROR']
             });
         }
 
-        return res.status(200).json({
-            success: true,
-            message: 'Retrieved successfully',
-            data: result.data
-        });
+        return res.status(200).json(result);
 
     } catch (error: any) {
         console.error('Table session billing error:', error);

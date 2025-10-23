@@ -224,18 +224,8 @@ export default class Payment extends BaseModel {
                 return this.formatErrors(GlobalError.RECORD_NOT_FOUND, 'Table not found');
             }
 
-            // Get customer
-            const customer = await this.context.customer.repository.findOne({
-                where: { uuid: input.customerUuid }
-            });
-
-            if (!customer) {
-                return this.formatErrors(GlobalError.RECORD_NOT_FOUND, 'Customer not found');
-            }
-
             const hourlyRate = table.category.hourlyRate;
             const totalAmount = input.hours * hourlyRate;
-            const isMinimumPayment = input.hours === 1;
 
             // Return billing preview only
             const billingPreview = {
@@ -243,16 +233,12 @@ export default class Payment extends BaseModel {
                     name: table.name,
                     category: {
                         name: table.category.name,
-                        hourlyRate: table.category.hourlyRate
                     }
                 },
                 billing: {
                     hours: input.hours,
-                    hourlyRate: hourlyRate,
-                    totalAmount: totalAmount,
+                    hourlyRate, totalAmount,
                     currencyName: table.category.currencyName,
-                    billingStatus: isMinimumPayment ? BillingStatus.MINIMUM_PAID : BillingStatus.FULLY_PAID,
-                    isMinimumPayment: isMinimumPayment
                 }
             };
 
