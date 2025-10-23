@@ -8,4 +8,5 @@ export interface CustomerInput {
 
 export interface CustomerFilter {
     searchText?: string
+    companyUuid: string
 }

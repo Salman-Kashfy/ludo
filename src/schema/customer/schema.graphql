@@ -23,6 +23,7 @@ extend type Mutation {
 
 input CustomerFilter {
     searchText: String
+    companyUuid: ID!
 }
 
 type CustomerPayload {

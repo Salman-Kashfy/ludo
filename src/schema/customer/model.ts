@@ -6,7 +6,7 @@ import { GlobalError } from "../root/enum";
 import { isEmpty } from "lodash";
 import { PagingInterface } from "../../interfaces";
 import { Brackets } from 'typeorm';
-import { addQueryBuilderFilters } from '../../shared/lib/DataRoleUtils';
+import { addQueryBuilderFiltersByUuid } from '../../shared/lib/DataRoleUtils';
 
 export default class Customer extends BaseModel {
     repository: any;
@@ -19,14 +19,16 @@ export default class Customer extends BaseModel {
 
     async index(paging: PagingInterface, params: CustomerFilter) {
         const _query = this.repository.createQueryBuilder('c');
-        const { query }:any = addQueryBuilderFilters(this.context, _query, params);  // Zainab: add companyId filter
+        const { query }:any = addQueryBuilderFiltersByUuid(this.context, _query, params);
 
+        // Remove leading zeros from search text for phone number searches
+        const searchText = params?.searchText?.replace(/^0+/, '');
         if (!isEmpty(params?.searchText)) {
             query.andWhere(new Brackets((qb:any) => {
                 qb.where("(concat(c.phone_code, c.phone_number) ILIKE :searchText)")
                     .orWhere("(concat(c.first_name, ' ', c.last_name) ILIKE :searchText)");
             }), {
-                searchText: `%${params.searchText}%`
+                searchText: `%${searchText}%`
             });
         }
 
