@@ -1,30 +1,24 @@
 type Customer {
-    id: ID!
+    uuid: ID!
     firstName: String!
     lastName: String!
+    fullName: String!
     phoneCode: String
     phoneNumber: String
+    phone: String
     createdAt: String!
     updatedAt: String!
 }
 
-type _Customer {
-    id: ID!
-    firstName: String!
-    lastName: String!
-    phoneCode: String
-    phoneNumber: String
-}
-
 extend type Query {
-    customer(id: ID!): CustomerPayload @requireAuth @requirePermissions(permissions: ["customer:view"])
+    customer(uuid: ID!): CustomerPayload @requireAuth @requirePermissions(permissions: ["customer:view"])
     customers(paging: PaginatorInput, params: CustomerFilter): CustomersPayload! @requireAuth @requirePermissions(permissions: ["customer:view"])
 }
 
 extend type Mutation {
     createCustomer(input: CreateCustomerInput!): SaveCustomerPayload @requireAuth @requirePermissions(permissions: ["customer:create"])
     updateCustomer(input: UpdateCustomerInput!): SaveCustomerPayload @requireAuth @requirePermissions(permissions: ["customer:update"])
-    deleteCustomer(id: ID!): DeleteCustomerPayload @requireAuth @requirePermissions(permissions: ["customer:delete"])
+    deleteCustomer(uuid: ID!): DeleteCustomerPayload @requireAuth @requirePermissions(permissions: ["customer:delete"])
 }
 
 input CustomerFilter {
@@ -51,7 +45,7 @@ input CreateCustomerInput {
 }
 
 input UpdateCustomerInput {
-    id: ID!
+    uuid: ID!
     firstName: String!
     lastName: String!
     phoneCode: String

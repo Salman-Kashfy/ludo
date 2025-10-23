@@ -5,6 +5,7 @@ import {
     CreateDateColumn,
     UpdateDateColumn,
     BaseEntity,
+    Index,
 } from 'typeorm';
 import { Length } from 'class-validator';
 
@@ -12,6 +13,9 @@ import { Length } from 'class-validator';
 export class Customer extends BaseEntity {
     @PrimaryGeneratedColumn()
     id!: number;
+
+    @Column('uuid', { unique: true, default: () => 'uuid_generate_v4()' })
+    uuid!: string;
 
     @Column({ name: 'first_name' })
     @Length(1, 50)
@@ -28,6 +32,10 @@ export class Customer extends BaseEntity {
     @Column({ name: 'phone_number', nullable: true })
     @Length(1, 15)
     phoneNumber?: string;
+
+    @Column({ name: 'company_id' })
+    @Index()
+    companyId!: number;
 
     @CreateDateColumn({
         type: 'timestamptz',

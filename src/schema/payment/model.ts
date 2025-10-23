@@ -240,18 +240,11 @@ export default class Payment extends BaseModel {
             // Return billing preview only
             const billingPreview = {
                 table: {
-                    uuid: table.uuid,
                     name: table.name,
                     category: {
-                        id: table.category.id,
                         name: table.category.name,
                         hourlyRate: table.category.hourlyRate
                     }
-                },
-                customer: {
-                    uuid: customer.uuid,
-                    firstName: customer.firstName,
-                    lastName: customer.lastName
                 },
                 billing: {
                     hours: input.hours,

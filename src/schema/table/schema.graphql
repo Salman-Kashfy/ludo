@@ -13,12 +13,6 @@ type Table {
     tableSessions: [TableSession]
 }
 
-type _Table {
-    uuid: ID!
-    name: String!
-    status: TableStatus!
-}
-
 #------------------------
 # Query
 #------------------------

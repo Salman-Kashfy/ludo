@@ -19,7 +19,7 @@ type Invoice {
     updatedAt: Datetime!
     
     # Relations
-    customer: _Customer!
+    customer: Customer!
     tableSession: TableSession
 }
 

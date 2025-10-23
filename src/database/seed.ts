@@ -62,7 +62,7 @@ export const startSeeding = async () => {
         await connection.createQueryBuilder().insert().into(Table).values(Object.values(_tables)).execute();
         
         console.log('Adding Customers');
-        const _customers = customers({customerId:CUSTOMER_ID});
+        const _customers = customers({customerId:CUSTOMER_ID, companyId: COMPANY_ID});
         await connection.createQueryBuilder().insert().into(Customer).values(Object.values(_customers)).execute();
         
         console.log('Adding Roles');

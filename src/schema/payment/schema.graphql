@@ -23,7 +23,7 @@ type Payment {
     updatedAt: String!
     
     # Relations
-    customer: _Customer!
+    customer: Customer!
     invoice: _Invoice
 }
 

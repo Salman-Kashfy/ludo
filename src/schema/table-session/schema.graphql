@@ -1,4 +1,5 @@
 enum TableSessionStatus {
+    booked
     active
     completed
     cancelled
@@ -8,7 +9,7 @@ type TableSession {
     uuid: ID!
     customerId: Int!
     tableId: Int!
-    startTime: String!
+    startTime: String
     endTime: String
     totalAmount: Float
     status: TableSessionStatus!
@@ -16,8 +17,8 @@ type TableSession {
     updatedAt: String!
     
     # Relations
-    customer: _Customer!
-    table: _Table!
+    customer: Customer!
+    table: Table!
 }
 
 extend type Query {

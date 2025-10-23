@@ -1,5 +1,5 @@
 export interface CustomerInput {
-    id?: number
+    uuid?: string
     firstName: string
     lastName: string
     phoneCode?: string

@@ -5,6 +5,8 @@ import Context from "../context";
 import { GlobalError } from "../root/enum";
 import { isEmpty } from "lodash";
 import { PagingInterface } from "../../interfaces";
+import { Brackets } from 'typeorm';
+import { addQueryBuilderFilters } from '../../shared/lib/DataRoleUtils';
 
 export default class Customer extends BaseModel {
     repository: any;
@@ -17,20 +19,24 @@ export default class Customer extends BaseModel {
 
     async index(paging: PagingInterface, params: CustomerFilter) {
         const _query = this.repository.createQueryBuilder('c');
+        const { query }:any = addQueryBuilderFilters(this.context, _query, params);  // Zainab: add companyId filter
 
-        if (!isEmpty(params.searchText)) {
-            _query.andWhere('(c.firstName ILIKE :searchText OR c.lastName ILIKE :searchText OR c.phoneNumber ILIKE :searchText)', {
+        if (!isEmpty(params?.searchText)) {
+            query.andWhere(new Brackets((qb:any) => {
+                qb.where("(concat(c.phone_code, c.phone_number) ILIKE :searchText)")
+                    .orWhere("(concat(c.first_name, ' ', c.last_name) ILIKE :searchText)");
+            }), {
                 searchText: `%${params.searchText}%`
             });
         }
 
-        return await this.paginator(_query, paging);
+        return await this.paginator(query, paging);
     }
 
-    async show(id: number) {
+    async show(uuid: string) {
         try {
             const data = await this.repository.findOne({
-                where: { id }
+                where: { uuid }
             });
             return {
                 data,
@@ -86,8 +92,8 @@ export default class Customer extends BaseModel {
 
         try {
             let data;
-            if (input.id) {
-                data = await this.repository.findOne({ where: { id: input.id } });
+            if (input.uuid) {
+                data = await this.repository.findOne({ where: { uuid: input.uuid } });
                 if (!data) {
                     return {
                         data: null,
@@ -127,9 +133,9 @@ export default class Customer extends BaseModel {
         }
     }
 
-    async delete(id: number) {
+    async delete(uuid: string) {
         try {
-            const customer = await this.repository.findOne({ where: { id } });
+            const customer = await this.repository.findOne({ where: { uuid } });
             if (!customer) {
                 return {
                     status: false,
