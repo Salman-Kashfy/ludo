@@ -3,8 +3,6 @@ import {
     PrimaryGeneratedColumn,
     ManyToOne,
     Column,
-    CreateDateColumn,
-    UpdateDateColumn,
     OneToOne,
     JoinColumn,
     Index,
@@ -36,21 +34,11 @@ export enum TableSessionStatus {
     @Index()
     tableId: number;
   
-    @Column({ type: 'timestamp', name: 'start_time', nullable: true })
+    @Column({ type: 'timestamptz', name: 'start_time', default: () => 'CURRENT_TIMESTAMP(6)' })
     startTime: Date | null;
-  
-    @Column({ type: 'timestamp', name: 'end_time', nullable: true })
-    endTime: Date | null;
-  
   
     @Column({ type: 'enum', enum: TableSessionStatus, default: TableSessionStatus.BOOKED })
     status: TableSessionStatus;
-  
-    @CreateDateColumn({ name: 'created_at' })
-    createdAt: Date;
-  
-    @UpdateDateColumn({ name: 'updated_at' })
-    updatedAt: Date;
 
      /**
      * Relations

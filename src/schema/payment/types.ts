@@ -1,5 +1,24 @@
-import { PaymentMethod, PaymentStatus } from '../../database/entity/Payment';
+// Enums
+export enum PaymentStatus {
+    SUCCESS = 'SUCCESS',
+    REFUNDED = 'REFUNDED',
+    PARTIALLY_REFUNDED = 'PARTIALLY_REFUNDED',
+}
 
+export enum PaymentMethod {
+    CASH = 'CASH',
+    CARD = 'CARD',
+    BANK_TRANSFER = 'BANK_TRANSFER',
+}
+
+export enum PaymentScheme {
+    CASH = 'CASH',
+    CARD = 'CARD',
+    BANK_TRANSFER = 'BANK_TRANSFER',
+}
+
+
+// Interfaces
 export interface PaymentInput {
     id?: string
     customerId: number
@@ -28,4 +47,20 @@ export interface TableSessionBillingInput {
     customerUuid: string
     hours: number
     companyUuid: string
+}
+
+export interface PaymentPayload { 
+    customerId: number
+    invoiceId: string
+    amount: number
+    method: PaymentMethod
+    status: PaymentStatus
+    refundNote: string
+    refundedAt: string
+}
+
+export interface PaymentMethodInput {
+    paymentScheme: PaymentScheme
+    name?: string
+    sourceId?: string
 }

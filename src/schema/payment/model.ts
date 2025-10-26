@@ -1,11 +1,11 @@
 import BaseModel from '../baseModel';
-import { Payment as PaymentEntity, PaymentStatus, BillingStatus } from '../../database/entity/Payment';
-import { TableSessionStatus } from '../../database/entity/TableSession';
+import { Payment as PaymentEntity } from '../../database/entity/Payment';
 import Context from "../context";
 import { GlobalError } from "../root/enum";
 import { isEmpty } from "lodash";
 import { PagingInterface } from "../../interfaces";
-import { TableSessionBillingInput } from './types';
+import { PaymentPayload, TableSessionBillingInput } from './types';
+import { PaymentStatus } from './types';
 
 export default class Payment extends BaseModel {
     repository: any;
@@ -202,11 +202,11 @@ export default class Payment extends BaseModel {
         }
     }
 
-    async create(input: any) {
+    async createPayment(transactionalEntityManager: any, input: PaymentPayload) {
         try {
-            const payment = this.repository.create(input);
-            const savedPayment = await this.repository.save(payment);
-            return this.successResponse(savedPayment);
+            const payment = transactionalEntityManager.create(this.repository.target, input);
+            const data = await transactionalEntityManager.save(payment);
+            return this.successResponse(data);
         } catch (error: any) {
             return this.formatErrors(GlobalError.INTERNAL_SERVER_ERROR, error.message);
         }

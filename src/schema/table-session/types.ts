@@ -1,4 +1,5 @@
 import { TableSessionStatus } from '../../database/entity/TableSession';
+import { PaymentMethodInput } from "../payment/types";
 
 export interface TableSessionInput {
     id?: string
@@ -17,7 +18,6 @@ export interface StartTableSessionInput {
 
 export interface EndTableSessionInput {
     id: string
-    endTime?: string
 }
 
 export interface TableSessionFilter {
@@ -27,4 +27,12 @@ export interface TableSessionFilter {
     status?: TableSessionStatus
     dateFrom?: string
     dateTo?: string
+}
+
+export interface BookTableSessionInput {
+    customerUuid: string;
+    tableUuid: string;
+    hours: number;
+    companyUuid: string;
+    paymentMethod: PaymentMethodInput;
 }

@@ -11,28 +11,15 @@ import {
   import { Invoice } from './Invoice';
   import { Customer } from './Customer';
   import { TableSession } from './TableSession';
-
-export enum PaymentMethod {
-    CASH = 'CASH',
-    CARD = 'CARD',
-    BANK_TRANSFER = 'BANK_TRANSFER',
-}
-
-export enum PaymentStatus {
-    COMPLETED = 'COMPLETED',
-    REFUNDED = 'REFUNDED',
-    PARTIALLY_REFUNDED = 'PARTIALLY_REFUNDED',
-}
-
-export enum BillingStatus {
-    MINIMUM_PAID = 'MINIMUM_PAID',
-    FULLY_PAID = 'FULLY_PAID',
-}
+  import { PaymentStatus, PaymentMethod } from '../../schema/payment/types';
   
   @Entity({ name: 'payments' })
   export class Payment {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+    @PrimaryGeneratedColumn()
+    id!: number;
+
+    @Column('uuid', { unique: true, default: () => 'uuid_generate_v4()' })
+    uuid!: string;
 
     @Column({ name: 'customer_id' })
     @Index()
@@ -59,16 +46,9 @@ export enum BillingStatus {
     @Column({
       type: 'enum',
       enum: PaymentStatus,
-      default: PaymentStatus.COMPLETED,
+      default: PaymentStatus.SUCCESS,
     })
     status: PaymentStatus;
-
-    @Column({
-      type: 'enum',
-      enum: BillingStatus,
-      nullable: true,
-    })
-    billingStatus: BillingStatus | null;
 
     @Column({ type: 'varchar', length: 255, nullable: true })
     refundNote: string | null;

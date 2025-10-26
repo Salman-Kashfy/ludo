@@ -13,6 +13,9 @@ export default {
         }
     },
     Mutation: {
+        bookTableSession(root: any, {input}:any, context:Context) {
+            return context.tableSession.bookSession(input);
+        },
         startTableSession(root: any, {input}:any, context:Context) {
             return context.tableSession.startSession(input);
         },

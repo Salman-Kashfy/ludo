@@ -4,8 +4,12 @@ import { InvoiceStatus } from '../../database/entity/Invoice';
 import { StartTableSessionInput, EndTableSessionInput, TableSessionFilter } from './types';
 import Context from "../context";
 import { GlobalError } from "../root/enum";
-import { isEmpty } from "lodash";
+import { BookTableSessionInput } from './types';
+import { isEmpty, result } from "lodash";
 import { PagingInterface } from "../../interfaces";
+import { In } from 'typeorm';
+import { PaymentStatus } from '../payment/types';
+import { accessRulesByRoleHierarchyUuid } from '../../shared/lib/DataRoleUtils';
 
 export default class TableSession extends BaseModel {
     repository: any;
@@ -86,6 +90,85 @@ export default class TableSession extends BaseModel {
             };
         }
     }
+
+    async bookSessionValidate(input: BookTableSessionInput) {
+        let errors: any = [], errorMessage:any = null, data: any = {};
+
+        if(!(await accessRulesByRoleHierarchyUuid(this.context, { companyUuid: input.companyUuid }))) {
+            return this.formatErrors([GlobalError.NOT_ALLOWED], "Permission denied");
+        }
+
+        data.customer = await this.context.customer.repository.findOne({
+            where: { uuid: input.customerUuid }
+        });
+        if (!data.customer) {
+            return this.formatErrors([GlobalError.RECORD_NOT_FOUND], "Customer not found");
+        }
+
+        data.table = await this.context.table.repository.findOne({
+            relations: ['category'],
+            where: { uuid: input.tableUuid }
+        });
+        if (!data.table) {
+            return this.formatErrors([GlobalError.RECORD_NOT_FOUND], "Table not found");
+        }
+        if (!data.table.category) {
+            return this.formatErrors([GlobalError.RECORD_NOT_FOUND], "Table category not found");
+        }
+
+        const existingSession = await this.repository.findOne({
+            where: { tableId: data.table.id, status: In([TableSessionStatus.ACTIVE, TableSessionStatus.BOOKED]) }
+        });
+        if (existingSession) {
+            return this.formatErrors([GlobalError.ALREADY_EXISTS], "Table already has a booked session");
+        }
+
+        return { data, errors, errorMessage };
+    }
+
+    async bookSession(input: BookTableSessionInput) {
+        const { errors, data, errorMessage } = await this.bookSessionValidate(input);
+        if (errors.length > 0) {
+          return this.formatErrors(errors, errorMessage);
+        }
+      
+        try {
+            const transaction = await this.connection.manager.transaction(async (transactionalEntityManager: any) => {
+
+            const session = transactionalEntityManager.create(this.repository.target, {
+              customerId: data.customer.id,
+              tableId: data.table.id,
+              status: TableSessionStatus.BOOKED,
+            });
+            
+            await transactionalEntityManager.save(session);
+      
+            const payment = await this.context.payment.createPayment(transactionalEntityManager,{
+              customerId: data.customer.id,
+              tableSessionId: session.id,
+              amount: data.table.category.hourlyRate * input.hours,
+              method: input.paymentMethod.paymentScheme,
+              status: PaymentStatus.SUCCESS,
+            });
+      
+            if (!payment || !payment.status) {
+              throw new Error('Payment processing failed');
+            }
+      
+            return session;
+          });
+
+          if(transaction && transaction.error && transaction.error.length > 0) {
+            console.log('transaction.error: ', transaction.error);
+            return this.formatErrors([GlobalError.EXCEPTION], transaction.error);
+          } 
+          
+          return this.successResponse(transaction);
+        } catch (error: any) {
+          console.log('error: ', error);
+          return this.formatErrors([GlobalError.INTERNAL_SERVER_ERROR], error.message);
+        }
+      }
 
     async startSessionValidate(input: StartTableSessionInput) {
         let errors: any = [], errorMessage = null, data: any = {};
@@ -187,7 +270,7 @@ export default class TableSession extends BaseModel {
                 return this.formatErrors(GlobalError.INVALID_INPUT, 'Session is not active');
             }
 
-            const endTime = input.endTime ? new Date(input.endTime) : new Date();
+            const endTime = new Date();
             const startTime = new Date(session.startTime);
             const durationInHours = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
             
@@ -203,7 +286,6 @@ export default class TableSession extends BaseModel {
             // Execute all operations within a transaction
             const result = await this.connection.manager.transaction(async (transactionalEntityManager: any) => {
                 // Update session
-                session.endTime = endTime;
                 session.totalAmount = totalAmount;
                 session.status = TableSessionStatus.COMPLETED;
                 const updatedSession = await transactionalEntityManager.save(session);

@@ -5,13 +5,13 @@ enum PaymentMethod {
 }
 
 enum PaymentStatus {
-    COMPLETED
+    SUCCESS
     REFUNDED
     PARTIALLY_REFUNDED
 }
 
 type Payment {
-    id: ID!
+    uuid: ID!
     customerId: Int!
     invoiceId: String
     amount: Float!
@@ -27,19 +27,8 @@ type Payment {
     invoice: _Invoice
 }
 
-type _Payment {
-    id: ID!
-    customerId: Int!
-    invoiceId: String
-    amount: Float!
-    method: PaymentMethod!
-    status: PaymentStatus!
-    refundNote: String
-    refundedAt: String
-}
-
 extend type Query {
-    payment(id: ID!): PaymentPayload @requireAuth @requirePermissions(permissions: ["payment:view"])
+    payment(uuid: ID!): PaymentPayload @requireAuth @requirePermissions(permissions: ["payment:view"])
     payments(paging: PaginatorInput, params: PaymentFilter): PaymentsPayload! @requireAuth @requirePermissions(permissions: ["payment:view"])
 }
 
@@ -85,4 +74,16 @@ type SavePaymentPayload {
     errors: GlobalError
     status: Boolean
     errorMessage: String
+}
+
+input PaymentMethodInput {
+  paymentScheme: PaymentScheme!
+  name: String
+  sourceId: String
+}
+
+enum PaymentScheme {
+    CASH
+    CARD
+    BANK_TRANSFER
 }

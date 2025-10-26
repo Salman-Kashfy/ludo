@@ -10,9 +10,6 @@ export default {
         },
     },
     Mutation: {
-        createPayment(root: any, {input}:any, context:Context) {
-            return context.payment.create(input);
-        },
         refundPayment(root: any, {input}: any, context: Context) {
             return context.payment.refund(input);
         },

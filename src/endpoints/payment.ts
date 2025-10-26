@@ -25,14 +25,6 @@ export const tableSessionBilling = async (req: any, res: Response) => {
             });
         }
 
-        if (input.hours < 1) {
-            return res.status(400).json({
-                success: false,
-                message: 'Hours must be at least 1',
-                errors: ['INVALID_INPUT']
-            });
-        }
-
         // Process table session billing
         const result = await ctx.payment.tableSessionBilling(input);
 
