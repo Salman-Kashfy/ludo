@@ -139,6 +139,7 @@ export default class TableSession extends BaseModel {
               customerId: data.customer.id,
               tableId: data.table.id,
               status: TableSessionStatus.BOOKED,
+              hours: Number(input.hours),
             });
             
             await transactionalEntityManager.save(session);

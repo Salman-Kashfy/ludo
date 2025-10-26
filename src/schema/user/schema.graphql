@@ -29,14 +29,6 @@ type User {
     company: _Company
 }
 
-type _User {
-    uuid: String!
-    firstName: String!
-    middleName: String
-    lastName: String
-    fullName: String
-}
-
 #------------------------
 # Query
 #------------------------

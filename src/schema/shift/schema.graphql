@@ -10,8 +10,8 @@ type Shift {
     updatedAt: String!
 
     # Relations
-    createdBy: _User!
-    lastUpdatedBy: _User
+    createdBy: User!
+    lastUpdatedBy: User
 }
 
 type _Shift {

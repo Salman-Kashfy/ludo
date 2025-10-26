@@ -34,8 +34,14 @@ export enum TableSessionStatus {
     @Index()
     tableId: number;
   
-    @Column({ type: 'timestamptz', name: 'start_time', default: () => 'CURRENT_TIMESTAMP(6)' })
+    @Column({ type: 'timestamptz', name: 'start_time', nullable: true })
     startTime: Date | null;
+  
+    @Column({ type: 'timestamptz', name: 'end_time', nullable: true })
+    endTime: Date | null;
+
+    @Column({ type: 'decimal', name: 'hours', precision: 3, scale: 2 })
+    hours: number;
   
     @Column({ type: 'enum', enum: TableSessionStatus, default: TableSessionStatus.BOOKED })
     status: TableSessionStatus;

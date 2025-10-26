@@ -10,6 +10,8 @@ type TableSession {
     customerId: Int!
     tableId: Int!
     startTime: Datetime
+    endTime: Datetime
+    hours: Float
     totalAmount: Float
     status: TableSessionStatus!
     
@@ -56,7 +58,7 @@ input BookTableSessionInput {
     companyUuid: ID!
     customerUuid: ID!
     tableUuid: ID!
-    hours: Int!
+    hours: Float!
     paymentMethod:PaymentMethodInput!
 }
 
