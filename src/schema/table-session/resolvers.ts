@@ -1,6 +1,14 @@
 import Context from '../context';
 
 export default {
+    TableSession: {
+        unit(root: any) {
+            return Number(root.hours) < 1 ? 'minutes' : 'hours';
+        },
+        duration(root: any) {
+            return Number(root.hours) < 1 ? root.hours * 60 : root.hours;
+        },
+    },
     Query: {
         tableSession(root: any, {id}: any, context:Context) {
             return context.tableSession.show(id);

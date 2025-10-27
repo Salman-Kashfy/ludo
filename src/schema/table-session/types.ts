@@ -12,8 +12,8 @@ export interface TableSessionInput {
 }
 
 export interface StartTableSessionInput {
-    customerId: number
-    tableId: number
+    companyUuid: string
+    tableSessionUuid: string
 }
 
 export interface EndTableSessionInput {

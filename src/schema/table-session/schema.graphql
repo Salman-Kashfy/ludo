@@ -11,7 +11,8 @@ type TableSession {
     tableId: Int!
     startTime: Datetime
     endTime: Datetime
-    hours: Float
+    duration: Float
+    unit: String
     totalAmount: Float
     status: TableSessionStatus!
     
@@ -63,8 +64,8 @@ input BookTableSessionInput {
 }
 
 input StartTableSessionInput {
-    customerId: Int!
-    tableId: Int!
+    companyUuid: ID!
+    tableSessionUuid: ID!
 }
 
 input EndTableSessionInput {

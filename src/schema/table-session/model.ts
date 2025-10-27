@@ -172,87 +172,34 @@ export default class TableSession extends BaseModel {
       }
 
     async startSessionValidate(input: StartTableSessionInput) {
-        let errors: any = [], errorMessage = null, data: any = {};
+        let errors: any = [], errorMessage:any = null, data: any = {};
 
-        // Validate customer exists
-        data.customer = await this.context.customer.repository.findOne({
-            where: { id: input.customerId }
+        data.tableSession = await this.repository.findOne({
+            where: { uuid: input.tableSessionUuid, status: TableSessionStatus.BOOKED }
         });
-        if (!data.customer) {
-            errors.push(GlobalError.RECORD_NOT_FOUND);
-            errorMessage = 'Customer not found';
+        if (!data.tableSession) {
+            return this.formatErrors([GlobalError.RECORD_NOT_FOUND], "Table session not found");
         }
 
-        // Validate table exists
-        data.table = await this.context.table.repository.findOne({
-            where: { id: input.tableId }
-        });
-        if (!data.table) {
-            errors.push(GlobalError.RECORD_NOT_FOUND);
-            errorMessage = 'Table not found';
-        }
-
-        // Check if table already has an active session
-        const existingSession = await this.repository.findOne({
-            where: { 
-                tableId: input.tableId, 
-                status: TableSessionStatus.ACTIVE 
-            }
-        });
-        if (existingSession) {
-            errors.push(GlobalError.ALREADY_EXISTS);
-            errorMessage = 'Table already has an active session';
-        }
-
-        if (errors.length > 0) {
-            return {
-                data: null,
-                status: false,
-                errors,
-                errorMessage
-            };
-        }
-
-        return {
-            data,
-            status: true,
-            errors: null,
-            errorMessage: null
-        };
+        return { data, errors, errorMessage }
     }
 
     async startSession(input: StartTableSessionInput) {
         const validation = await this.startSessionValidate(input);
-        if (!validation.status) {
-            return validation;
+        if (validation.errors.length > 0) {
+            return this.formatErrors(validation.errors, validation.errorMessage);
         }
 
         try {
-            const { customer, table } = validation.data;
+            const { data } = validation;
+            
+            data.tableSession.startTime = new Date();
+            data.tableSession.status = TableSessionStatus.ACTIVE;
 
-            // Create new table session
-            const session = this.repository.create({
-                customerId: input.customerId,
-                tableId: input.tableId,
-                startTime: new Date(),
-                status: TableSessionStatus.ACTIVE
-            });
-
-            const savedSession = await this.repository.save(session);
-
-            return {
-                data: savedSession,
-                status: true,
-                errors: null,
-                errorMessage: null
-            };
+            const savedSession = await this.repository.save(data.tableSession);
+            return this.successResponse(savedSession);
         } catch (error: any) {
-            return {
-                data: null,
-                status: false,
-                errors: [GlobalError.INTERNAL_SERVER_ERROR],
-                errorMessage: error.message
-            };
+            return this.formatErrors([GlobalError.INTERNAL_SERVER_ERROR], error.message);
         }
     }
 
