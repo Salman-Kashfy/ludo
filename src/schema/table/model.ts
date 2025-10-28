@@ -5,6 +5,7 @@ import Context from "../context";
 import {GlobalError} from "../root/enum";
 import {isEmpty} from "lodash";
 import {PagingInterface} from "../../interfaces";
+import { accessRulesByRoleHierarchyUuid } from '../../shared/lib/DataRoleUtils';
 
 export default class Table extends BaseModel {
     repository: any;
@@ -16,7 +17,8 @@ export default class Table extends BaseModel {
 
     async index(paging: PagingInterface, params: TableFilter) {
         const _query = this.repository.createQueryBuilder('t')
-            .leftJoinAndSelect('t.category', 'category');
+            .leftJoinAndSelect('t.category', 'category')
+            .leftJoinAndSelect('t.categoryPrices', 'categoryPrices');
         
         if (!isEmpty(params.searchText)) {
             _query.andWhere('t.name ILIKE :searchText', { searchText: `%${params.searchText}%` });
@@ -58,72 +60,54 @@ export default class Table extends BaseModel {
     async saveValidate(input: TableInput) {
         let errors: any = [], errorMessage = null, data: any = {};
 
-        if (isEmpty(input.name)) {
-            errors.push(GlobalError.REQUIRED_FIELDS_MISSING);
-            errorMessage = 'Name is required';
+        if (!(await accessRulesByRoleHierarchyUuid(this.context, { companyUuid: input.companyUuid }))) {
+            return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied - user does not belong to this company');
         }
 
-        if (!input.categoryId) {
-            errors.push(GlobalError.REQUIRED_FIELDS_MISSING);
-            errorMessage = 'Category ID is required';
+        data.category = await this.context.category.repository.findOne({ where: { uuid: input.categoryUuid } });
+        if (!data.category) {
+            return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Category not found');
+        }
+
+        data.company = await this.context.company.repository.findOne({ where: { uuid: input.companyUuid } });
+        if (!data.company) {
+            return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Company not found');
+        }
+
+        if (input.uuid) {
+            data.existingEntity = await this.repository.findOne({ where: { uuid: input.uuid } });
+            if (!data.existingEntity) {
+                return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Table not found');
+            }
         }
 
         if (errors.length > 0) {
-            return {
-                data: null,
-                status: false,
-                errors,
-                errorMessage
-            };
+            return this.formatErrors(errors, errorMessage);
         }
 
-        return {
-            data,
-            status: true,
-            errors: null,
-            errorMessage: null
-        };
+        return { data, errors, errorMessage }
     }
 
     async save(input: TableInput) {
-        const validation = await this.saveValidate(input);
-        if (!validation.status) {
-            return validation;
+        const { data, errors, errorMessage } = await this.saveValidate(input);
+        if (!isEmpty(errors)) {
+            return this.formatErrors(errors, errorMessage);
         }
 
         try {
-            let data;
-            if (input.id) {
-                data = await this.repository.findOne({ where: { id: input.id } });
-                if (!data) {
-                    return {
-                        data: null,
-                        status: false,
-                        errors: [GlobalError.RECORD_NOT_FOUND],
-                        errorMessage: 'Table not found'
-                    };
-                }
-                data.name = input.name;
-                data.categoryId = input.categoryId;
-                if (input.status) {
-                    data.status = input.status;
-                }
-            } else {
-                data = this.repository.create({
-                    name: input.name,
-                    categoryId: input.categoryId,
-                    status: input.status || TableStatus.AVAILABLE
-                });
-            }
+            const { category, company, existingEntity } = data;
+            let table = existingEntity || new TableEntity();
+            
+            table.name = input.name;
+            table.categoryId = category.id;
+            table.companyId = company.id;
+            table.status = input.status || TableStatus.AVAILABLE;
+            table.createdById = table.createdById || this.context.auth.id;
+            table.lastUpdatedById = this.context.auth.id;
 
-            data = await this.repository.save(data);
+            table = await this.repository.save(data);
 
-            return {
-                data,
-                status: true,
-                errors: null,
-                errorMessage: null
-            };
+            return this.successResponse(table);
         } catch (error:any) {
             return {
                 data: null,

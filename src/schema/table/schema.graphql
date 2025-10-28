@@ -7,7 +7,7 @@ enum TableStatus {
 type Table {
     uuid: ID!
     name: String!
-    categoryId: Int!
+    categoryUuid: ID!
     status: TableStatus!
     category: Category!
     tableSessions: [TableSession]
@@ -35,7 +35,7 @@ extend type Mutation {
 #------------------------
 input TableFilter {
     searchText: String
-    categoryId: Int
+    categoryUuid: ID
     status: TableStatus
 }
 type TablePayload {
@@ -55,15 +55,17 @@ type TablesPayload {
 
 input CreateTableInput {
     name: String!
-    categoryId: Int!
+    categoryUuid: ID!
     status: TableStatus
+    companyUuid: ID!
 }
 
 input UpdateTableInput {
     uuid: ID!
     name: String!
-    categoryId: Int!
+    categoryUuid: ID!
     status: TableStatus
+    companyUuid: ID!
 }
 
 input UpdateTableStatusInput {

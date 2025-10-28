@@ -1,0 +1,16 @@
+type CategoryPrice {
+    uuid: ID!
+    categoryId: Int!
+    price: Float!
+    unit: CategoryPriceUnit!
+    duration: Int!
+    currencyName: String!
+    
+    # Relations
+    category: Category!
+}
+
+enum CategoryPriceUnit {
+    minutes
+    hourly
+}

@@ -1,10 +1,11 @@
 import { TableStatus } from '../../database/entity/Table';
 
 export interface TableInput {
-    id?: number
+    uuid?: string
     name: string
-    categoryId: number
+    categoryUuid: string
     status?: TableStatus
+    companyUuid: string
 }
 
 export interface TableFilter {

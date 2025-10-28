@@ -7,6 +7,7 @@ import RoleModel from './role/model';
 import PermissionModel from './permission/model';
 import RolePermissionModel from './role-permission/model';
 import CategoryModel from './category/model';
+import CategoryPriceModel from './category-price/model';
 import TableModel from './table/model';
 import ShiftModel from './shift/model';
 import CustomerModel from './customer/model';
@@ -22,6 +23,7 @@ export default class Context {
     city: CityModel;
     role: RoleModel;
     category: CategoryModel;
+    categoryPrice: CategoryPriceModel;
     table: TableModel;
     shift: ShiftModel;
     customer: CustomerModel;
@@ -43,6 +45,7 @@ export default class Context {
         this.city = new CityModel(connection, this);
         this.role = new RoleModel(connection, this);
         this.category = new CategoryModel(connection, this);
+        this.categoryPrice = new CategoryPriceModel(connection, this);
         this.table = new TableModel(connection, this);
         this.shift = new ShiftModel(connection, this);
         this.customer = new CustomerModel(connection, this);

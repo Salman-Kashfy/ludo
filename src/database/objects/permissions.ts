@@ -6,12 +6,8 @@ export const permissions = () => [
         name:PERMISSIONS.ALL.NAME
     },
     {
-        id:PERMISSIONS.CATEGORY.CREATE.ID,
-        name:PERMISSIONS.CATEGORY.CREATE.NAME
-    },
-    {
-        id:PERMISSIONS.CATEGORY.UPDATE.ID,
-        name:PERMISSIONS.CATEGORY.UPDATE.NAME
+        id:PERMISSIONS.CATEGORY.UPSERT.ID,
+        name:PERMISSIONS.CATEGORY.UPSERT.NAME
     },
     {
         id:PERMISSIONS.CATEGORY.VIEW.ID,
@@ -22,12 +18,8 @@ export const permissions = () => [
         name:PERMISSIONS.CATEGORY.DELETE.NAME
     },
     {
-        id:PERMISSIONS.TABLE.CREATE.ID,
-        name:PERMISSIONS.TABLE.CREATE.NAME
-    },
-    {
-        id:PERMISSIONS.TABLE.UPDATE.ID,
-        name:PERMISSIONS.TABLE.UPDATE.NAME
+        id:PERMISSIONS.TABLE.UPSERT.ID,
+        name:PERMISSIONS.TABLE.UPSERT.NAME
     },
     {
         id:PERMISSIONS.TABLE.VIEW.ID,
@@ -50,12 +42,8 @@ export const permissions = () => [
         name:PERMISSIONS.SHIFT.DELETE.NAME
     },
     {
-        id:PERMISSIONS.CUSTOMER.CREATE.ID,
-        name:PERMISSIONS.CUSTOMER.CREATE.NAME
-    },
-    {
-        id:PERMISSIONS.CUSTOMER.UPDATE.ID,
-        name:PERMISSIONS.CUSTOMER.UPDATE.NAME
+        id:PERMISSIONS.CUSTOMER.UPSERT.ID,
+        name:PERMISSIONS.CUSTOMER.UPSERT.NAME
     },
     {
         id:PERMISSIONS.CUSTOMER.VIEW.ID,
@@ -66,12 +54,8 @@ export const permissions = () => [
         name:PERMISSIONS.CUSTOMER.DELETE.NAME
     },
     {
-        id:PERMISSIONS.TABLE_SESSION.CREATE.ID,
-        name:PERMISSIONS.TABLE_SESSION.CREATE.NAME
-    },
-    {
-        id:PERMISSIONS.TABLE_SESSION.UPDATE.ID,
-        name:PERMISSIONS.TABLE_SESSION.UPDATE.NAME
+        id:PERMISSIONS.TABLE_SESSION.UPSERT.ID,
+        name:PERMISSIONS.TABLE_SESSION.UPSERT.NAME
     },
     {
         id:PERMISSIONS.TABLE_SESSION.VIEW.ID,
@@ -82,12 +66,8 @@ export const permissions = () => [
         name:PERMISSIONS.TABLE_SESSION.DELETE.NAME
     },
     {
-        id:PERMISSIONS.PAYMENT.CREATE.ID,
-        name:PERMISSIONS.PAYMENT.CREATE.NAME
-    },
-    {
-        id:PERMISSIONS.PAYMENT.UPDATE.ID,
-        name:PERMISSIONS.PAYMENT.UPDATE.NAME
+        id:PERMISSIONS.PAYMENT.UPSERT.ID,
+        name:PERMISSIONS.PAYMENT.UPSERT.NAME
     },
     {
         id:PERMISSIONS.PAYMENT.VIEW.ID,

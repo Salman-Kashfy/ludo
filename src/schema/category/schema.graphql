@@ -4,6 +4,7 @@ type Category {
     hourlyRate: Float!
     currencyName: String!
     tables: [Table]
+    categoryPrices: [CategoryPrice]
 }
 
 #------------------------
@@ -18,8 +19,7 @@ extend type Query {
 # Schema mutations
 #------------------------
 extend type Mutation {
-    createCategory(input: CreateCategoryInput!): SaveCategoryPayload @requireAuth @requirePermissions(permissions: ["category:create"])
-    updateCategory(input: UpdateCategoryInput!): SaveCategoryPayload @requireAuth @requirePermissions(permissions: ["category:update"])
+    saveCategory(input: SaveCategoryInput!): SaveCategoryPayload @requireAuth @requirePermissions(permissions: ["category:upsert"])
 }
 
 #------------------------
@@ -43,17 +43,18 @@ type CategoriesPayload {
 # Mutations types
 #------------------------
 
-input CreateCategoryInput {
-    name: String!
-    companyUuid: ID!
-    hourlyRate: Float!
+input CategoryPriceInput {
+    price: Float!
+    unit: CategoryPriceUnit!
+    duration: Int!
+    currencyName: String
 }
 
-input UpdateCategoryInput {
-    uuid: ID!
+input SaveCategoryInput {
+    uuid: ID
     companyUuid: ID!
     name: String!
-    hourlyRate: Float!
+    categoryPrices: [CategoryPriceInput]
 }
 
 type SaveCategoryPayload {

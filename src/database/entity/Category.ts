@@ -1,6 +1,7 @@
 import {Entity, PrimaryGeneratedColumn, Index, Column, BaseEntity, OneToMany} from 'typeorm';
 import { Length, IsNumber, Min } from 'class-validator';
 import { Table } from './Table';
+import { CategoryPrice } from './CategoryPrice';
 
 @Entity({ name: 'categories' })
 export class Category extends BaseEntity {
@@ -31,5 +32,11 @@ export class Category extends BaseEntity {
      */
     @OneToMany(() => Table, table => table.category)
     tables?: Table[];
+
+    @OneToMany(() => CategoryPrice, categoryPrice => categoryPrice.category,{
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
+    })
+    categoryPrices?: CategoryPrice[];
 
 }

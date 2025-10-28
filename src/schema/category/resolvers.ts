@@ -10,11 +10,8 @@ export default {
         }
     },
     Mutation: {
-        createCategory(root: any, {input}:any, context:Context) {
+        saveCategory(root: any, {input}:any, context:Context) {
             return context.category.save(input);
-        },
-        updateCategory(root: any, {input}: any, context: Context) {
-            return context.category.save(input);
-        },
+        }
     },
 };

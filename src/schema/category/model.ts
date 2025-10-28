@@ -67,84 +67,77 @@ export default class Category extends BaseModel {
     async saveValidate(input: CategoryInput) {
         let errors: any = [], errorMessage = null, data: any = {};
 
+        data.company = await this.context.company.repository.findOne({ where: { uuid: input.companyUuid } });
+        if (!data.company) {
+            return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Company not found');
+        }
+
         if (!(await accessRulesByRoleHierarchy(this.context, {companyUuid: input.companyUuid}))) {
             return this.formatErrors([GlobalError.NOT_ALLOWED],'Permission denied');
         }
 
-        if (errors.length > 0) {
-            return {
-                data: null,
-                status: false,
-                errors,
-                errorMessage
-            };
+        if (input.uuid) {
+            data.existingEntity = await this.repository.findOne({ where: { uuid: input.uuid } });
+            if (!data.existingEntity) {
+                return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Category not found');
+            }
         }
 
-        return {
-            data,
-            status: true,
-            errors: null,
-            errorMessage: null
-        };
+        return {data, errors, errorMessage};
     }
 
     async save(input: CategoryInput) {
-        const validation = await this.saveValidate(input);
-        if (!validation.status) {
-            return validation;
+        const {data, errors, errorMessage} = await this.saveValidate(input);
+        if (!isEmpty(errors)) {
+            return this.formatErrors(errors, errorMessage);
         }
 
         try {
-            // Get company ID from company UUID
-            const company = await this.connection.getRepository(Company).findOne({ 
-                where: { uuid: input.companyUuid } 
-            });
-            
-            if (!company) {
-                return {
-                    data: null,
-                    status: false,
-                    errors: [GlobalError.RECORD_NOT_FOUND],
-                    errorMessage: 'Company not found'
-                };
-            }
+            const {existingEntity, company} = data;
+            let category = existingEntity || new CategoryEntity();
+            const transaction = await this.connection.manager.transaction(async (transactionalEntityManager: any) => {
+                category.name = input.name;
+                category.hourlyRate = input.hourlyRate;
+                category.companyId = company.id;
+                category.createdById = category.createdById || this.context.user.id;
+                category.lastUpdatedById = this.context.user.id;
 
-            let data;
-            if (input.uuid) {
-                data = await this.repository.findOne({ where: { uuid: input.uuid } });
-                if (!data) {
-                    return {
-                        data: null,
-                        status: false,
-                        errors: [GlobalError.RECORD_NOT_FOUND],
-                        errorMessage: 'Category not found'
-                    };
+                category = await transactionalEntityManager.save(category);
+
+                if (input.categoryPrices && input.categoryPrices.length > 0) {
+                    // Delete existing category prices for this category
+                    await transactionalEntityManager
+                        .createQueryBuilder()
+                        .delete()
+                        .from(this.context.categoryPrice.repository.target)
+                        .where('categoryId = :categoryId', { categoryId: category.id })
+                        .execute();
+                    
+                    // Create new category prices
+                    const categoryPrices = input.categoryPrices.map(price => 
+                        transactionalEntityManager.create(this.context.categoryPrice.repository.target, {
+                            categoryId: category.id,
+                            price: price.price,
+                            unit: price.unit,
+                            duration: price.duration,
+                            currencyName: price.currencyName || 'PKR'
+                        })
+                    );
+
+                    await transactionalEntityManager.save(categoryPrices);
                 }
-                data.name = input.name;
-                data.hourlyRate = input.hourlyRate;
-            } else {
-                data = this.repository.create({
-                    name: input.name,
-                    hourlyRate: input.hourlyRate,
-                    companyId: company.id
-                });
+                return category
+            });
+
+            if (transaction && transaction.error && transaction.error.length > 0) {
+                console.log(transaction.error);
+                return this.formatErrors(GlobalError.INTERNAL_SERVER_ERROR, transaction.error);
             }
 
-            data = await this.repository.save(data);
-
-            return {
-                data,
-                status: true,
-                errors: null,
-                errorMessage: null
-            };
+            return this.successResponse(transaction);
         } catch (error:any) {
-            return {
-                data: null,
-                status: false,
-                errors: [GlobalError.INTERNAL_SERVER_ERROR],
-                errorMessage: error.message
-            };
+            console.log(error);
+            return this.formatErrors(GlobalError.INTERNAL_SERVER_ERROR, error.message);
         }
     }
 }
