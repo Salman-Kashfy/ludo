@@ -16,6 +16,13 @@ export interface StartTableSessionInput {
     tableSessionUuid: string
 }
 
+export interface RechargeTableSessionInput {
+    companyUuid: string
+    tableSessionUuid: string
+    hours: number
+    paymentMethod: PaymentMethodInput;
+}
+
 export interface EndTableSessionInput {
     id: string
 }

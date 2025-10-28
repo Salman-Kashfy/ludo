@@ -27,6 +27,9 @@ export default {
         startTableSession(root: any, {input}:any, context:Context) {
             return context.tableSession.startSession(input);
         },
+        rechargeTableSession(root: any, {input}:any, context:Context) {
+            return context.tableSession.rechargeSession(input);
+        },
         endTableSession(root: any, {input}: any, context: Context) {
             return context.tableSession.endSession(input);
         },

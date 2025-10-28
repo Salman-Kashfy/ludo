@@ -1,7 +1,7 @@
 import BaseModel from '../baseModel';
 import { TableSession as TableSessionEntity, TableSessionStatus } from '../../database/entity/TableSession';
 import { InvoiceStatus } from '../../database/entity/Invoice';
-import { StartTableSessionInput, EndTableSessionInput, TableSessionFilter } from './types';
+import { StartTableSessionInput, EndTableSessionInput, TableSessionFilter, RechargeTableSessionInput } from './types';
 import Context from "../context";
 import { GlobalError } from "../root/enum";
 import { BookTableSessionInput } from './types';
@@ -10,6 +10,7 @@ import { PagingInterface } from "../../interfaces";
 import { In } from 'typeorm';
 import { PaymentStatus } from '../payment/types';
 import { accessRulesByRoleHierarchyUuid } from '../../shared/lib/DataRoleUtils';
+import moment from 'moment';
 
 export default class TableSession extends BaseModel {
     repository: any;
@@ -133,30 +134,29 @@ export default class TableSession extends BaseModel {
         }
       
         try {
-            const transaction = await this.connection.manager.transaction(async (transactionalEntityManager: any) => {
-
-            const session = transactionalEntityManager.create(this.repository.target, {
-              customerId: data.customer.id,
-              tableId: data.table.id,
-              status: TableSessionStatus.BOOKED,
-              hours: Number(input.hours),
-            });
-            
-            await transactionalEntityManager.save(session);
+            const transaction = await this.connection.manager.transaction(async (transactionalEntityManager: any) => {                
+                const session = transactionalEntityManager.create(this.repository.target, {
+                    customerId: data.customer.id,
+                    tableId: data.table.id,
+                    status: TableSessionStatus.BOOKED,
+                    hours:Number(input.hours)
+                });
+                
+                await transactionalEntityManager.save(session);
+                
+                const payment = await this.context.payment.createPayment(transactionalEntityManager,{
+                    customerId: data.customer.id,
+                    tableSessionId: session.id,
+                    amount: data.table.category.hourlyRate * Number(input.hours),
+                    method: input.paymentMethod.paymentScheme,
+                    status: PaymentStatus.SUCCESS,
+                });
+        
+                if (!payment || !payment.status) {
+                    throw new Error('Payment processing failed');
+                }
       
-            const payment = await this.context.payment.createPayment(transactionalEntityManager,{
-              customerId: data.customer.id,
-              tableSessionId: session.id,
-              amount: data.table.category.hourlyRate * input.hours,
-              method: input.paymentMethod.paymentScheme,
-              status: PaymentStatus.SUCCESS,
-            });
-      
-            if (!payment || !payment.status) {
-              throw new Error('Payment processing failed');
-            }
-      
-            return session;
+                return session;
           });
 
           if(transaction && transaction.error && transaction.error.length > 0) {
@@ -173,6 +173,10 @@ export default class TableSession extends BaseModel {
 
     async startSessionValidate(input: StartTableSessionInput) {
         let errors: any = [], errorMessage:any = null, data: any = {};
+
+        if(!(await accessRulesByRoleHierarchyUuid(this.context, { companyUuid: input.companyUuid }))) {
+            return this.formatErrors([GlobalError.NOT_ALLOWED], "Permission denied");
+        }
 
         data.tableSession = await this.repository.findOne({
             where: { uuid: input.tableSessionUuid, status: TableSessionStatus.BOOKED }
@@ -192,13 +196,91 @@ export default class TableSession extends BaseModel {
 
         try {
             const { data } = validation;
-            
-            data.tableSession.startTime = new Date();
+            const session = data.tableSession
+            const hours = Number(session.hours);
+            data.tableSession.startTime = moment().add(hours, 'hours').toDate(),
             data.tableSession.status = TableSessionStatus.ACTIVE;
 
             const savedSession = await this.repository.save(data.tableSession);
+            savedSession.startTime = moment().add(hours, 'hours').toISOString()
             return this.successResponse(savedSession);
         } catch (error: any) {
+            return this.formatErrors([GlobalError.INTERNAL_SERVER_ERROR], error.message);
+        }
+    }
+
+    async rechargeSessionValidate(input: RechargeTableSessionInput) {
+        let errors: any = [], errorMessage:any = null, data: any = {};
+        
+        if(!(await accessRulesByRoleHierarchyUuid(this.context, { companyUuid: input.companyUuid }))) {
+            return this.formatErrors([GlobalError.NOT_ALLOWED], "Permission denied");
+        }
+
+        data.tableSession = await this.repository.findOne({
+            where: { uuid: input.tableSessionUuid, status: TableSessionStatus.ACTIVE },
+            relations: ['customer', 'table', 'table.category']
+        });
+        if (!data.tableSession) {
+            return this.formatErrors([GlobalError.RECORD_NOT_FOUND], "Table session not found");
+        }
+
+        // Check if session has expired (startTime is more than 0 minutes ago and not negative)
+        const currentTime = moment();
+        const startTime = moment(data.tableSession.startTime);
+        const durationSeconds = startTime.diff(currentTime, 'seconds');
+        
+        if (durationSeconds <= 0) {
+            return this.formatErrors([GlobalError.INVALID_INPUT], "Session expired");
+        }
+
+        return { data, errors, errorMessage }
+    }
+
+    async rechargeSession(input: RechargeTableSessionInput) {
+        let errors: any = [], errorMessage:any = null, data: any = {};
+
+        const validation = await this.rechargeSessionValidate(input);
+        if (validation.errors.length > 0) {
+            return this.formatErrors(validation.errors, validation.errorMessage);
+        }
+
+        try {
+            const { data } = validation;
+            const minutes = Number(input.hours) * 60
+            const session = data.tableSession
+            const hours = Number(input.hours) + Number(session.hours)
+            const startTime = moment(session.startTime).add(minutes, 'minutes').toISOString();
+            
+            const transaction = await this.connection.manager.transaction(async (transactionalEntityManager: any) => {
+
+                session.hours = hours
+                session.startTime = startTime
+                
+                await transactionalEntityManager.save(session);
+          
+                const payment = await this.context.payment.createPayment(transactionalEntityManager,{
+                  customerId: data.tableSession.customer.id,
+                  tableSessionId: session.id,
+                  amount: data.tableSession.table.category.hourlyRate * Number(input.hours),
+                  method: input.paymentMethod.paymentScheme,
+                  status: PaymentStatus.SUCCESS,
+                });
+          
+                if (!payment || !payment.status) {
+                  throw new Error('Payment processing failed');
+                }
+          
+                return session;
+              });
+    
+              if(transaction && transaction.error && transaction.error.length > 0) {
+                console.log('transaction.error: ', transaction.error);
+                return this.formatErrors([GlobalError.EXCEPTION], transaction.error);
+              } 
+
+              return this.successResponse(transaction);
+        }catch (error: any) {
+            console.log('error: ', error);
             return this.formatErrors([GlobalError.INTERNAL_SERVER_ERROR], error.message);
         }
     }
