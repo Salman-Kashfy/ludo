@@ -32,15 +32,19 @@ export default class Category extends BaseModel {
         
         const _query = this.repository.createQueryBuilder('c')
             .leftJoinAndSelect('c.tables', 't')
+            .leftJoinAndSelect('c.categoryPrices', 'cp')
             .leftJoinAndSelect('t.tableSessions', 'ts', 'ts.status IN (:...activeStatuses)', { 
                 activeStatuses: [TableSessionStatus.ACTIVE, TableSessionStatus.BOOKED] 
             })
-            .leftJoinAndSelect('ts.customer', 'customer')
+            //.leftJoinAndSelect('ts.customer', 'customer')
+            
             .andWhere('c.companyId = :companyId', { companyId: company.id })
         
         if (!isEmpty(params?.searchText)) {
             _query.andWhere('c.name ILIKE :searchText', { searchText: `%${params.searchText}%` });
         }
+        _query.orderBy('t.name', 'ASC');
+        _query.addOrderBy('cp.price', 'ASC');
 
         return { list: await _query.getMany() };
     }

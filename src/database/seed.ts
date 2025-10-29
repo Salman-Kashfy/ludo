@@ -5,6 +5,7 @@ import { Role } from './entity/Role';
 import { User } from './entity/User';
 import { UserRole } from './entity/UserRole';
 import { Category } from './entity/Category';
+import { CategoryPrice } from './entity/CategoryPrice';
 import { Table } from './entity/Table';
 import { Permission } from './entity/Permission';
 import { Company } from './entity/Company';
@@ -25,6 +26,7 @@ import { roles } from './objects/roles';
 import { users } from './objects/users';
 import { userRoles } from './objects/userRoles';
 import { categories } from './objects/categories';
+import { categoryPrices } from './objects/categoryPrices';
 import { tables } from './objects/tables';
 import { permissions } from './objects/permissions';
 import { rolePermissions } from './objects/rolePermissions';
@@ -51,6 +53,14 @@ export const startSeeding = async () => {
             companyId: COMPANY_ID
         });
         await connection.createQueryBuilder().insert().into(Category).values(Object.values(_categories)).execute();
+
+        console.log('Adding Category Prices');
+        const _categoryPrices = categoryPrices({
+            regularCategoryId: REGULAR_CATEGORY_ID,
+            specialCategoryId: SPECIAL_CATEGORY_ID,
+            premiumCategoryId: PREMIUM_CATEGORY_ID
+        });
+        await connection.createQueryBuilder().insert().into(CategoryPrice).values(Object.values(_categoryPrices)).execute();
         
         console.log('Adding Tables');
         const _tables = tables({
