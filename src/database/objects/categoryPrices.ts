@@ -25,7 +25,8 @@ export const categoryPrices = (input: CategoryPriceInput) => {
             price: tier.regularPrice,
             unit: tier.unit,
             duration: tier.duration,
-            currencyName: 'PKR'
+            currencyName: 'PKR',
+            freeMins: tier.unit === CategoryPriceUnit.HOURLY ? 60 : 0
         });
     });
 
@@ -36,7 +37,8 @@ export const categoryPrices = (input: CategoryPriceInput) => {
             price: tier.specialPrice,
             unit: tier.unit,
             duration: tier.duration,
-            currencyName: 'PKR'
+            currencyName: 'PKR',
+            freeMins: tier.unit === CategoryPriceUnit.HOURLY ? 60 : 0
         });
     });
 
@@ -47,7 +49,8 @@ export const categoryPrices = (input: CategoryPriceInput) => {
             price: tier.premiumPrice,
             unit: tier.unit,
             duration: tier.duration,
-            currencyName: 'PKR'
+            currencyName: 'PKR',
+            freeMins: tier.unit === CategoryPriceUnit.HOURLY ? 60 : 0
         });
     });
 

@@ -1,5 +1,5 @@
 import {Entity, PrimaryGeneratedColumn, Index, Column, BaseEntity, JoinColumn, ManyToOne} from 'typeorm';
-import { IsNumber, Min } from 'class-validator';
+import { IsNumber, Min, IsOptional } from 'class-validator';
 import { CategoryPriceUnit } from '../../schema/category/types';
 import { Category } from './Category';
 
@@ -28,6 +28,12 @@ export class CategoryPrice extends BaseEntity {
     @IsNumber()
     @Min(0)
     duration: number;
+
+    @Column('integer',{ name: 'free_mins', nullable: true })
+    @IsOptional()
+    @IsNumber()
+    @Min(0)
+    freeMins?: number;
 
     @Column({ name: 'currency_name', default: 'PKR' })
     @Index()
