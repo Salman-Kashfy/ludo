@@ -243,10 +243,10 @@ export default class TableSession extends BaseModel {
             return this.formatErrors([GlobalError.RECORD_NOT_FOUND], "Table session not found");
         }
 
-        const categoryPrice = await this.context.categoryPrice.repository.findOne({
+        data.categoryPrice = await this.context.categoryPrice.repository.findOne({
             where: { uuid: input.categoryPriceUuid }
         });
-        if (!categoryPrice) {
+        if (!data.categoryPrice) {
             return this.formatErrors([GlobalError.RECORD_NOT_FOUND], "Category price not found");
         }
 
@@ -263,11 +263,9 @@ export default class TableSession extends BaseModel {
     }
 
     async rechargeSession(input: RechargeTableSessionInput) {
-        let errors: any = [], errorMessage:any = null, data: any = {};
-
-        const validation = await this.rechargeSessionValidate(input);
-        if (validation.errors.length > 0) {
-            return this.formatErrors(validation.errors, validation.errorMessage);
+        const { data, errors, errorMessage }  = await this.rechargeSessionValidate(input);
+        if (!isEmpty(errors)) {
+            return this.formatErrors(errors, errorMessage);
         }
 
         const { categoryPrice } = data;

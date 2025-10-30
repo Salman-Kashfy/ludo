@@ -72,7 +72,7 @@ input StartTableSessionInput {
 input RechargeTableSessionInput {
     companyUuid: ID!
     tableSessionUuid: ID!
-    hours: Float!
+    categoryPriceUuid: ID!
     paymentMethod:PaymentMethodInput!
 }
 
