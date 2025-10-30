@@ -19,7 +19,7 @@ export interface StartTableSessionInput {
 export interface RechargeTableSessionInput {
     companyUuid: string
     tableSessionUuid: string
-    hours: number
+    categoryPriceUuid: string
     paymentMethod: PaymentMethodInput;
 }
 
@@ -39,7 +39,7 @@ export interface TableSessionFilter {
 export interface BookTableSessionInput {
     customerUuid: string;
     tableUuid: string;
-    hours: number;
+    categoryPriceUuid: string;
     companyUuid: string;
     paymentMethod: PaymentMethodInput;
 }

@@ -20,5 +20,5 @@ export interface CategoryFilter {
 
 export enum CategoryPriceUnit {
     MINUTES = 'minutes',
-    HOURLY = 'hourly',
+    HOURS = 'hours',
 }

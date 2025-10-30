@@ -9,7 +9,7 @@ export const tableSessionBilling = async (req: any, res: Response) => {
     try {
         const ctx = Context.getInstance(connection,schema,req,req.user);
         const input:TableSessionBillingInput = req.query;
-        if (!input.tableUuid || !input.hours || !input.companyUuid) {
+        if (!input.tableUuid || !input.companyUuid || !input.categoryPriceUuid) {
             return res.status(400).json({
                 success: false,
                 message: 'Missing required fields: tableUuid, hours, companyUuid',

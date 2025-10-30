@@ -224,10 +224,14 @@ export default class Payment extends BaseModel {
                 return this.formatErrors(GlobalError.RECORD_NOT_FOUND, 'Table not found');
             }
 
-            const hourlyRate = table.category.hourlyRate;
-            const totalAmount = input.hours * hourlyRate;
+            const categoryPrice = await this.context.categoryPrice.repository.findOne({
+                where: { uuid: input.categoryPriceUuid },
+            });
 
-            // Return billing preview only
+            if (!categoryPrice) {
+                return this.formatErrors(GlobalError.RECORD_NOT_FOUND, 'Category price not found');
+            }
+
             const billingPreview = {
                 table: {
                     name: table.name,
@@ -236,9 +240,10 @@ export default class Payment extends BaseModel {
                     }
                 },
                 billing: {
-                    hours: input.hours,
-                    hourlyRate, totalAmount,
-                    currencyName: table.category.currencyName,
+                    unit: categoryPrice.unit,
+                    duration: categoryPrice.duration,
+                    totalAmount:categoryPrice.price,
+                    currencyName: categoryPrice.currencyName,
                 }
             };
 

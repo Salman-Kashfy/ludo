@@ -9,6 +9,9 @@ import {
   } from 'typeorm';
   import { Customer } from './Customer';
   import { Table } from './Table';
+import { CategoryPriceUnit } from '../../schema/category/types';
+import { IsOptional, Min } from 'class-validator';
+import { IsNumber } from 'class-validator';
 
 export enum TableSessionStatus {
     BOOKED = 'booked',
@@ -40,8 +43,19 @@ export enum TableSessionStatus {
     @Column({ type: 'timestamptz', name: 'end_time', nullable: true })
     endTime: Date | null;
 
-    @Column({ type: 'decimal', name: 'hours', precision: 3, scale: 2 })
-    hours: number;
+    @Column({ type: 'enum', enum: CategoryPriceUnit })
+    unit: CategoryPriceUnit;
+
+    @Column('integer',{ name: 'duration' })
+    @IsNumber()
+    @Min(0)
+    duration: number;
+
+    @Column('integer',{ name: 'free_mins', nullable: true })
+    @IsOptional()
+    @IsNumber()
+    @Min(0)
+    freeMins?: number;
   
     @Column({ type: 'enum', enum: TableSessionStatus, default: TableSessionStatus.BOOKED })
     status: TableSessionStatus;

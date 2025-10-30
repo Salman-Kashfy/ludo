@@ -15,7 +15,7 @@ export const categoryPrices = (input: CategoryPriceInput) => {
         { duration: 15, unit: CategoryPriceUnit.MINUTES, regularPrice: 125, specialPrice: 250, premiumPrice: 500 },
         { duration: 30, unit: CategoryPriceUnit.MINUTES, regularPrice: 250, specialPrice: 500, premiumPrice: 1000 },
         { duration: 45, unit: CategoryPriceUnit.MINUTES, regularPrice: 375, specialPrice: 750, premiumPrice: 1500 },
-        { duration: 1, unit: CategoryPriceUnit.HOURLY, regularPrice: 500, specialPrice: 1000, premiumPrice: 2000 }
+        { duration: 1, unit: CategoryPriceUnit.HOURS, regularPrice: 500, specialPrice: 1000, premiumPrice: 2000 }
     ];
 
     // Generate prices for Regular category
@@ -26,7 +26,7 @@ export const categoryPrices = (input: CategoryPriceInput) => {
             unit: tier.unit,
             duration: tier.duration,
             currencyName: 'PKR',
-            freeMins: tier.unit === CategoryPriceUnit.HOURLY ? 60 : 0
+            freeMins: tier.unit === CategoryPriceUnit.HOURS ? 60 : 0
         });
     });
 
@@ -38,7 +38,7 @@ export const categoryPrices = (input: CategoryPriceInput) => {
             unit: tier.unit,
             duration: tier.duration,
             currencyName: 'PKR',
-            freeMins: tier.unit === CategoryPriceUnit.HOURLY ? 60 : 0
+            freeMins: tier.unit === CategoryPriceUnit.HOURS ? 60 : 0
         });
     });
 
@@ -50,7 +50,7 @@ export const categoryPrices = (input: CategoryPriceInput) => {
             unit: tier.unit,
             duration: tier.duration,
             currencyName: 'PKR',
-            freeMins: tier.unit === CategoryPriceUnit.HOURLY ? 60 : 0
+            freeMins: tier.unit === CategoryPriceUnit.HOURS ? 60 : 0
         });
     });
 

@@ -60,7 +60,7 @@ input BookTableSessionInput {
     companyUuid: ID!
     customerUuid: ID!
     tableUuid: ID!
-    hours: Float!
+    categoryPriceUuid: ID!
     paymentMethod:PaymentMethodInput!
 }
 

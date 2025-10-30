@@ -36,8 +36,6 @@ export default class Category extends BaseModel {
             .leftJoinAndSelect('t.tableSessions', 'ts', 'ts.status IN (:...activeStatuses)', { 
                 activeStatuses: [TableSessionStatus.ACTIVE, TableSessionStatus.BOOKED] 
             })
-            //.leftJoinAndSelect('ts.customer', 'customer')
-            
             .andWhere('c.companyId = :companyId', { companyId: company.id })
         
         if (!isEmpty(params?.searchText)) {

@@ -117,6 +117,13 @@ export default class TableSession extends BaseModel {
             return this.formatErrors([GlobalError.RECORD_NOT_FOUND], "Table category not found");
         }
 
+        data.categoryPrice = await this.context.categoryPrice.repository.findOne({
+            where: { uuid: input.categoryPriceUuid }
+        });
+        if (!data.categoryPrice) {
+            return this.formatErrors([GlobalError.RECORD_NOT_FOUND], "Category price not found");
+        }
+
         const existingSession = await this.repository.findOne({
             where: { tableId: data.table.id, status: In([TableSessionStatus.ACTIVE, TableSessionStatus.BOOKED]) }
         });
@@ -130,24 +137,28 @@ export default class TableSession extends BaseModel {
     async bookSession(input: BookTableSessionInput) {
         const { errors, data, errorMessage } = await this.bookSessionValidate(input);
         if (errors.length > 0) {
-          return this.formatErrors(errors, errorMessage);
+            return this.formatErrors(errors, errorMessage);
         }
+
+        const { categoryPrice } = data;
       
         try {
-            const transaction = await this.connection.manager.transaction(async (transactionalEntityManager: any) => {                
+            const transaction = await this.connection.manager.transaction(async (transactionalEntityManager: any) => {
                 const session = transactionalEntityManager.create(this.repository.target, {
                     customerId: data.customer.id,
                     tableId: data.table.id,
                     status: TableSessionStatus.BOOKED,
-                    hours:Number(input.hours)
+                    unit: categoryPrice.unit,
+                    duration: categoryPrice.duration,
+                    freeMins: categoryPrice.freeMins
                 });
-                
+
                 await transactionalEntityManager.save(session);
                 
-                const payment = await this.context.payment.createPayment(transactionalEntityManager,{
+                const payment = await this.context.payment.createPayment(transactionalEntityManager, {
                     customerId: data.customer.id,
                     tableSessionId: session.id,
-                    amount: data.table.category.hourlyRate * Number(input.hours),
+                    amount: categoryPrice.price,
                     method: input.paymentMethod.paymentScheme,
                     status: PaymentStatus.SUCCESS,
                 });
@@ -155,21 +166,21 @@ export default class TableSession extends BaseModel {
                 if (!payment || !payment.status) {
                     throw new Error('Payment processing failed');
                 }
-      
+        
                 return session;
-          });
+            });
 
-          if(transaction && transaction.error && transaction.error.length > 0) {
-            console.log('transaction.error: ', transaction.error);
-            return this.formatErrors([GlobalError.EXCEPTION], transaction.error);
-          } 
-          
-          return this.successResponse(transaction);
+            if(transaction && transaction.error && transaction.error.length > 0) {
+                console.log('transaction.error: ', transaction.error);
+                return this.formatErrors([GlobalError.EXCEPTION], transaction.error);
+            }
+
+            return this.successResponse(transaction);
         } catch (error: any) {
-          console.log('error: ', error);
-          return this.formatErrors([GlobalError.INTERNAL_SERVER_ERROR], error.message);
+            console.log('error: ', error);
+            return this.formatErrors([GlobalError.INTERNAL_SERVER_ERROR], error.message);
         }
-      }
+    }
 
     async startSessionValidate(input: StartTableSessionInput) {
         let errors: any = [], errorMessage:any = null, data: any = {};
@@ -197,12 +208,20 @@ export default class TableSession extends BaseModel {
         try {
             const { data } = validation;
             const session = data.tableSession
-            const hours = Number(session.hours);
-            data.tableSession.startTime = moment().add(hours, 'hours').toDate(),
+            let startTime = moment().add(session.duration, session.unit)
+            if(session.freeMins) {
+                startTime.add(session.freeMins, 'minutes')
+            }
+            data.tableSession.startTime = startTime.toDate(),
             data.tableSession.status = TableSessionStatus.ACTIVE;
 
             const savedSession = await this.repository.save(data.tableSession);
-            savedSession.startTime = moment().add(hours, 'hours').toISOString()
+            startTime = moment().add(session.duration, session.unit)
+            if(session.freeMins) {
+                startTime.add(session.freeMins, 'minutes')
+            }
+            savedSession.startTime = startTime.toISOString()
+    
             return this.successResponse(savedSession);
         } catch (error: any) {
             return this.formatErrors([GlobalError.INTERNAL_SERVER_ERROR], error.message);
@@ -222,6 +241,13 @@ export default class TableSession extends BaseModel {
         });
         if (!data.tableSession) {
             return this.formatErrors([GlobalError.RECORD_NOT_FOUND], "Table session not found");
+        }
+
+        const categoryPrice = await this.context.categoryPrice.repository.findOne({
+            where: { uuid: input.categoryPriceUuid }
+        });
+        if (!categoryPrice) {
+            return this.formatErrors([GlobalError.RECORD_NOT_FOUND], "Category price not found");
         }
 
         // Check if session has expired (startTime is more than 0 minutes ago and not negative)
@@ -244,41 +270,47 @@ export default class TableSession extends BaseModel {
             return this.formatErrors(validation.errors, validation.errorMessage);
         }
 
+        const { categoryPrice } = data;
+
         try {
-            const { data } = validation;
-            const minutes = Number(input.hours) * 60
             const session = data.tableSession
-            const hours = Number(input.hours) + Number(session.hours)
-            const startTime = moment(session.startTime).add(minutes, 'minutes').toISOString();
+            const duration = categoryPrice.duration
+            let startTime:any = moment(session.startTime).add(duration, categoryPrice.unit)
+            
+            if(categoryPrice.freeMins) {
+                startTime.add(categoryPrice.freeMins, 'minutes')
+            }
+            startTime = startTime.toDate();
             
             const transaction = await this.connection.manager.transaction(async (transactionalEntityManager: any) => {
 
-                session.hours = hours
+                session.unit = categoryPrice.unit
+                session.duration = categoryPrice.duration
                 session.startTime = startTime
                 
                 await transactionalEntityManager.save(session);
-          
-                const payment = await this.context.payment.createPayment(transactionalEntityManager,{
-                  customerId: data.tableSession.customer.id,
-                  tableSessionId: session.id,
-                  amount: data.tableSession.table.category.hourlyRate * Number(input.hours),
-                  method: input.paymentMethod.paymentScheme,
-                  status: PaymentStatus.SUCCESS,
+
+                const payment = await this.context.payment.createPayment(transactionalEntityManager, {
+                    customerId: data.tableSession.customer.id,
+                    tableSessionId: session.id,
+                    amount: categoryPrice.price,
+                    method: input.paymentMethod.paymentScheme,
+                    status: PaymentStatus.SUCCESS,
                 });
-          
+
                 if (!payment || !payment.status) {
-                  throw new Error('Payment processing failed');
+                    throw new Error('Payment processing failed');
                 }
-          
+
                 return session;
-              });
+            });   
     
-              if(transaction && transaction.error && transaction.error.length > 0) {
+            if (transaction && transaction.error && transaction.error.length > 0) {
                 console.log('transaction.error: ', transaction.error);
                 return this.formatErrors([GlobalError.EXCEPTION], transaction.error);
-              } 
+            }
 
-              return this.successResponse(transaction);
+            return this.successResponse(transaction);
         }catch (error: any) {
             console.log('error: ', error);
             return this.formatErrors([GlobalError.INTERNAL_SERVER_ERROR], error.message);

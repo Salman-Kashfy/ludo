@@ -5,6 +5,7 @@ type CategoryPrice {
     unit: CategoryPriceUnit!
     duration: Int!
     currencyName: String!
+    freeMins: Int
     
     # Relations
     category: Category!
@@ -12,5 +13,5 @@ type CategoryPrice {
 
 enum CategoryPriceUnit {
     minutes
-    hourly
+    hours
 }
