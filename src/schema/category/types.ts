@@ -1,6 +1,7 @@
 export interface CategoryPriceInput {
     price: number
     unit: CategoryPriceUnit
+    freeMins?: number
     duration: number
     currencyName?: string
 }

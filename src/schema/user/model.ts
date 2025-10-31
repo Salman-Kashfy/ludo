@@ -9,7 +9,7 @@ import {isValidPassword} from "../../shared/lib/util";
 import {GlobalError} from "../root/enum";
 import {isEmpty} from "lodash";
 import {PagingInterface} from "../../interfaces";
-import { addQueryBuilderFilters, accessRulesByRoleHierarchy } from "../../shared/lib/DataRoleUtils";
+import { addQueryBuilderFilters, accessRulesByRoleHierarchyUuid } from "../../shared/lib/DataRoleUtils";
 
 export default class User extends BaseModel {
     repository: any;
@@ -73,7 +73,7 @@ export default class User extends BaseModel {
         const errors: any = [];
         let errorMessage = '';
 
-        if(!(await accessRulesByRoleHierarchy(this.context, { companyUuid: input.companyUuid }))) {
+        if(!(await accessRulesByRoleHierarchyUuid(this.context, { companyUuid: input.companyUuid }))) {
             return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
         }
 

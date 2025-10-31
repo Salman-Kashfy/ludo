@@ -4,6 +4,7 @@ import {ROLES, SEED_USERS} from "../../shared/config";
 interface UserInput {
     passwordHash:string
     countryId:number
+    companyId?:number
     companyUuid?:string
 }
 
@@ -17,6 +18,8 @@ export const users = async (input:UserInput) => [
         email: 'admin@corefluence.com',
         password: input.passwordHash,
         countryId: input.countryId,
+        companyId: input.companyId,
+        companyUuid: input.companyUuid,
         phoneCode: '92',
         phoneNumber: '3332258331',
         status: Status.ACTIVE,
@@ -33,6 +36,7 @@ export const users = async (input:UserInput) => [
         email: 'employee@corefluence.com',
         password: input.passwordHash,
         countryId: input.countryId,
+        companyId: input.companyId,
         companyUuid: input.companyUuid,
         phoneCode: '92',
         phoneNumber: '3320001234',

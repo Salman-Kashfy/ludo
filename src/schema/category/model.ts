@@ -5,7 +5,7 @@ import {CategoryInput, CategoryFilter} from './types';
 import Context from "../context";
 import {GlobalError} from "../root/enum";
 import {isEmpty} from "lodash";
-import { accessRulesByRoleHierarchy } from '../../shared/lib/DataRoleUtils';
+import { accessRulesByRoleHierarchy, accessRulesByRoleHierarchyUuid } from '../../shared/lib/DataRoleUtils';
 import { TableSessionStatus } from '../../database/entity/TableSession';
 
 export default class Category extends BaseModel {
@@ -17,8 +17,8 @@ export default class Category extends BaseModel {
     }
 
     async index(params: CategoryFilter) {
-        if (!(await accessRulesByRoleHierarchy(this.context, {companyUuid: params.companyUuid}))) {
-            return this.formatErrors([GlobalError.NOT_ALLOWED],'Permission denied');
+        if (!(await accessRulesByRoleHierarchyUuid(this.context, {companyUuid: params.companyUuid}))) {
+            return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
         }
         
         // Get company ID from company UUID
@@ -30,9 +30,7 @@ export default class Category extends BaseModel {
             return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Company not found');
         }
         
-        const _query = this.repository.createQueryBuilder('c')
-            .leftJoinAndSelect('c.tables', 't')
-            .leftJoinAndSelect('c.categoryPrices', 'cp')
+        const _query = await this.mainQuery()
             .leftJoinAndSelect('t.tableSessions', 'ts', 'ts.status IN (:...activeStatuses)', { 
                 activeStatuses: [TableSessionStatus.ACTIVE, TableSessionStatus.BOOKED] 
             })
@@ -48,22 +46,24 @@ export default class Category extends BaseModel {
     }
 
     async show(uuid: string) {
-        try {
-            const data = await this.repository.findOne({ where: { uuid } });
-            return {
-                data,
-                status: true,
-                errors: null,
-                errorMessage: null
-            };
-        } catch (error:any) {
-            return {
-                data: null,
-                status: false,
-                errors: [GlobalError.INTERNAL_SERVER_ERROR],
-                errorMessage: error.message
-            };
+        const data = await this.mainQuery()
+            .where('c.uuid = :uuid', { uuid })
+            .orderBy('cp.price', 'ASC')
+            .getOne();
+
+        if(!data) {
+            return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Category not found');
         }
+        if(!(await accessRulesByRoleHierarchy(this.context, {companyId: data?.companyId}))) {
+            return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
+        }
+        return this.successResponse(data);
+    }
+
+    mainQuery() {
+        return this.repository.createQueryBuilder('c')
+        .leftJoinAndSelect('c.tables', 't')
+        .leftJoinAndSelect('c.categoryPrices', 'cp')
     }
 
     async saveValidate(input: CategoryInput) {
@@ -74,7 +74,7 @@ export default class Category extends BaseModel {
             return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Company not found');
         }
 
-        if (!(await accessRulesByRoleHierarchy(this.context, {companyUuid: input.companyUuid}))) {
+        if (!(await accessRulesByRoleHierarchyUuid(this.context, {companyUuid: input.companyUuid}))) {
             return this.formatErrors([GlobalError.NOT_ALLOWED],'Permission denied');
         }
 
@@ -122,6 +122,7 @@ export default class Category extends BaseModel {
                             price: price.price,
                             unit: price.unit,
                             duration: price.duration,
+                            freeMins: price.freeMins,
                             currencyName: price.currencyName || 'PKR'
                         })
                     );

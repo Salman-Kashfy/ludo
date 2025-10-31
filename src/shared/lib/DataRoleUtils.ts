@@ -16,7 +16,7 @@ export function isAdmin(user: any) {
     return false;
 }
 
-export function accessRulesByRoleHierarchy(ctx: Context, { companyUuid }: { companyUuid: string }): boolean {
+export function accessRulesByRoleHierarchy(ctx: Context, { companyId }: { companyId: number }): boolean {
     const user: any = ctx.user;
     if (!user) {
         console.error("accessRulesByRoleHierarchy: No user found in context");
@@ -29,7 +29,7 @@ export function accessRulesByRoleHierarchy(ctx: Context, { companyUuid }: { comp
             return true;
 
         default:
-            return user.companyUuid === companyUuid;
+            return user.companyId === companyId;
 
     }
 }

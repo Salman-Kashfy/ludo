@@ -2,8 +2,8 @@ import Context from '../context';
 
 export default {
     Query: {
-        category(root: any, {id}: any, context:Context) {
-            return context.category.show(id);
+        category(root: any, {uuid}: any, context:Context) {
+            return context.category.show(uuid);
         },
         categories(root: any, {params}: any, context:Context) {
             return context.category.index(params);

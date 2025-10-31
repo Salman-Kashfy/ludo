@@ -80,7 +80,7 @@ export const startSeeding = async () => {
         await connection.createQueryBuilder().insert().into(Role).values(Object.values(_roles)).execute();
         
         console.log('Adding Users');
-        const _users = await users({passwordHash, countryId:COUNTRY_ID, companyUuid: COMPANY_UUID});
+        const _users = await users({passwordHash, countryId:COUNTRY_ID,  companyId:COMPANY_ID, companyUuid: COMPANY_UUID});
         await connection.createQueryBuilder().insert().into(User).values(Object.values(_users)).execute();
         
         console.log('Adding User Roles');

@@ -3,7 +3,7 @@ import Context from '../schema/context';
 import { TableSessionBillingInput } from '../schema/payment/types';
 import connection from '../database/connection';
 import schema from "../shared/directives/loadSchema";
-import { accessRulesByRoleHierarchy } from '../shared/lib/DataRoleUtils';
+import { accessRulesByRoleHierarchyUuid } from '../shared/lib/DataRoleUtils';
 
 export const tableSessionBilling = async (req: any, res: Response) => {
     try {
@@ -17,7 +17,7 @@ export const tableSessionBilling = async (req: any, res: Response) => {
             });
         }
 
-        if(!await accessRulesByRoleHierarchy(ctx, { companyUuid: input.companyUuid })) {
+        if(!await accessRulesByRoleHierarchyUuid(ctx, { companyUuid: input.companyUuid })) {
             return res.status(403).json({
                 success: false,
                 message: 'Forbidden',

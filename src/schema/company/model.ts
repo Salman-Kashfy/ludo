@@ -5,7 +5,7 @@ import Context from "../context";
 import {GlobalError} from "../root/enum";
 import {isEmpty} from "lodash";
 import {PagingInterface} from "../../interfaces";
-import {accessRulesByRoleHierarchy, addQueryBuilderFiltersForCompanies} from "../../shared/lib/DataRoleUtils";
+import {accessRulesByRoleHierarchyUuid, addQueryBuilderFiltersForCompanies} from "../../shared/lib/DataRoleUtils";
 
 export default class Role extends BaseModel {
     repository: any;
@@ -32,7 +32,7 @@ export default class Role extends BaseModel {
             return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Company not found')
         }
 
-        if (!(await accessRulesByRoleHierarchy(this.context, {companyUuid: uuid}))) {
+        if (!(await accessRulesByRoleHierarchyUuid(this.context, {companyUuid: uuid}))) {
             return this.formatErrors([GlobalError.NOT_ALLOWED],'Permission denied')
         }
 
@@ -52,7 +52,7 @@ export default class Role extends BaseModel {
         let errors:any = [], errorMessage = null, data:any = {}
         if(input.uuid){
 
-            if (!(await accessRulesByRoleHierarchy(this.context, {companyUuid: input.uuid}))) {
+            if (!(await accessRulesByRoleHierarchyUuid(this.context, {companyUuid: input.uuid}))) {
                 return this.formatErrors([GlobalError.NOT_ALLOWED],'Permission denied')
             }
 
@@ -113,7 +113,7 @@ export default class Role extends BaseModel {
         if (!company) {
             return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Company not found')
         }
-        if (!(await accessRulesByRoleHierarchy(this.context, {companyUuid: uuid}))) {
+        if (!(await accessRulesByRoleHierarchyUuid(this.context, {companyUuid: uuid}))) {
             return this.errorResponse(GlobalError.NOT_ALLOWED)
         }
         company.status = status

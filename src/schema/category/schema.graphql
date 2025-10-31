@@ -47,6 +47,7 @@ input CategoryPriceInput {
     price: Float!
     unit: CategoryPriceUnit!
     duration: Int!
+    freeMins: Int
     currencyName: String
 }
 
