@@ -3,16 +3,33 @@ import connection from "../ormconfig";
 import schema from "../shared/directives/loadSchema";
 import Context from '../schema/context';
 import { Status } from '../database/entity/root/enums';
+import { TableSessionStatus } from '../database/entity/TableSession';
 
 export const tableStats = async (req:Request, res:Response) => {
     try {
 
         const ctx = Context.getInstance(connection,schema,req,req.user)
-        const [activeTournaments, todaysRevenue] = [0,0]
-        const [availableTables, occupiedTables] = await Promise.all([
-            ctx.table.repository.count({ where: { status: Status.ACTIVE } }),
-            ctx.table.repository.count({ where: { status: Status.INACTIVE } })
-        ]);
+        
+        // Get total count of ACTIVE tables
+        const totalActiveTables = await ctx.table.repository.count({ 
+            where: { status: Status.ACTIVE } 
+        });
+
+        // Get count of distinct tables that have active/booked sessions
+        const occupiedTablesCount = await ctx.tableSession.repository
+            .createQueryBuilder('ts')
+            .select('COUNT(DISTINCT ts.tableId)', 'count')
+            .where('ts.status IN (:...statuses)', { 
+                statuses: [TableSessionStatus.BOOKED, TableSessionStatus.ACTIVE] 
+            })
+            .getRawOne();
+
+        const occupiedTables = parseInt(occupiedTablesCount?.count || '0', 10);
+        
+        // Available tables = total ACTIVE tables - occupied tables
+        const availableTables = totalActiveTables - occupiedTables;
+
+        const [activeTournaments, todaysRevenue] = [0, 0];
 
         const data = {
             availableTables,
