@@ -13,8 +13,8 @@ export default {
         saveTable(root: any, {input}:any, context:Context) {
             return context.table.save(input);
         },
-        updateTableStatus(root: any, {input}: any, context: Context) {
-            return context.table.updateTableStatus(input);
+        deleteTable(root: any, {uuid}: any, context: Context) {
+            return context.table.delete(uuid);
         },
     },
 };

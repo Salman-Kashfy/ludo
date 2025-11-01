@@ -1,6 +1,7 @@
 import BaseModel from '../baseModel';
 import { Category as CategoryEntity } from '../../database/entity/Category';
 import { Company } from '../../database/entity/Company';
+import { Status } from '../../database/entity/root/enums';
 import {CategoryInput, CategoryFilter} from './types';
 import Context from "../context";
 import {GlobalError} from "../root/enum";
@@ -63,7 +64,7 @@ export default class Category extends BaseModel {
 
     mainQuery() {
         return this.repository.createQueryBuilder('c')
-        .leftJoinAndSelect('c.tables', 't')
+        .leftJoinAndSelect('c.tables', 't', 't.status = :activeStatus', { activeStatus: Status.ACTIVE })
         .leftJoinAndSelect('c.categoryPrices', 'cp')
     }
 

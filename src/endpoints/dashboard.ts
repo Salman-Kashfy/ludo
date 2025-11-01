@@ -2,7 +2,7 @@ import {NextFunction, Request, Response} from 'express'
 import connection from "../ormconfig";
 import schema from "../shared/directives/loadSchema";
 import Context from '../schema/context';
-import { TableStatus } from '../database/entity/Table';
+import { Status } from '../database/entity/root/enums';
 
 export const tableStats = async (req:Request, res:Response) => {
     try {
@@ -10,8 +10,8 @@ export const tableStats = async (req:Request, res:Response) => {
         const ctx = Context.getInstance(connection,schema,req,req.user)
         const [activeTournaments, todaysRevenue] = [0,0]
         const [availableTables, occupiedTables] = await Promise.all([
-            ctx.table.repository.count({ where: { status: TableStatus.AVAILABLE } }),
-            ctx.table.repository.count({ where: { status: TableStatus.OCCUPIED } })
+            ctx.table.repository.count({ where: { status: Status.ACTIVE } }),
+            ctx.table.repository.count({ where: { status: Status.INACTIVE } })
         ]);
 
         const data = {

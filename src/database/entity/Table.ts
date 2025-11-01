@@ -3,12 +3,7 @@ import { Length } from 'class-validator';
 import { Category } from './Category';
 import { TableSession } from './TableSession';
 import { Company } from './Company';
-
-export enum TableStatus {
-    AVAILABLE = 'available',
-    OCCUPIED = 'occupied',
-    RESERVED = 'reserved'
-}
+import { Status } from './root/enums';
 
 @Entity({ name: 'tables' })
 export class Table extends BaseEntity {
@@ -35,10 +30,10 @@ export class Table extends BaseEntity {
 
     @Column({ 
         type: 'enum', 
-        enum: TableStatus, 
-        default: TableStatus.AVAILABLE 
+        enum: Status, 
+        default: Status.ACTIVE 
     })
-    status!: TableStatus;
+    status!: Status;
 
     /**
      * Relations

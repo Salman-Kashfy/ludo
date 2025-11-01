@@ -1,14 +1,8 @@
-enum TableStatus {
-    available
-    occupied
-    reserved
-}
-
 type Table {
     uuid: ID!
     name: String!
     categoryUuid: ID!
-    status: TableStatus!
+    status: Status!
     sortNo: Int
     category: Category!
     tableSessions: [TableSession]
@@ -27,7 +21,7 @@ extend type Query {
 #------------------------
 extend type Mutation {
     saveTable(input: SaveTableInput!): SaveTablePayload @requireAuth @requirePermissions(permissions: ["table:upsert"])
-    updateTableStatus(input: UpdateTableStatusInput!): SaveTablePayload @requireAuth @requirePermissions(permissions: ["table:update"])
+    deleteTable(uuid: ID!): DeleteTablePayload @requireAuth @requirePermissions(permissions: ["table:delete"])
 }
 
 #------------------------
@@ -37,7 +31,7 @@ input TableFilter {
     searchText: String
     companyUuid: ID!
     categoryUuid: ID
-    status: TableStatus
+    status: Status
 }
 type TablePayload {
     data: Table
@@ -60,18 +54,20 @@ input SaveTableInput {
     uuid: ID
     name: String!
     categoryUuid: ID!
-    status: TableStatus
+    status: Status
     companyUuid: ID!
     sortNo: Int
 }
 
-input UpdateTableStatusInput {
-    id: ID!
-    status: TableStatus!
-}
-
 type SaveTablePayload {
     data: Table
+    errors: GlobalError
+    status: Boolean
+    errorMessage: String
+}
+
+type DeleteTablePayload {
+    data: Boolean
     errors: GlobalError
     status: Boolean
     errorMessage: String
