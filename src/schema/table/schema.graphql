@@ -25,8 +25,7 @@ extend type Query {
 # Schema mutations
 #------------------------
 extend type Mutation {
-    createTable(input: CreateTableInput!): SaveTablePayload @requireAuth @requirePermissions(permissions: ["table:create"])
-    updateTable(input: UpdateTableInput!): SaveTablePayload @requireAuth @requirePermissions(permissions: ["table:update"])
+    saveTable(input: SaveTableInput!): SaveTablePayload @requireAuth @requirePermissions(permissions: ["table:upsert"])
     updateTableStatus(input: UpdateTableStatusInput!): SaveTablePayload @requireAuth @requirePermissions(permissions: ["table:update"])
 }
 
@@ -56,15 +55,8 @@ type TablesPayload {
 # Mutations types
 #------------------------
 
-input CreateTableInput {
-    name: String!
-    categoryUuid: ID!
-    status: TableStatus
-    companyUuid: ID!
-}
-
-input UpdateTableInput {
-    uuid: ID!
+input SaveTableInput {
+    uuid: ID
     name: String!
     categoryUuid: ID!
     status: TableStatus

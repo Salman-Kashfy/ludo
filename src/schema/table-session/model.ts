@@ -143,23 +143,23 @@ export default class TableSession extends BaseModel {
         const { categoryPrice } = data;
       
         try {
-            const transaction = await this.connection.manager.transaction(async (transactionalEntityManager: any) => {
-                const session = transactionalEntityManager.create(this.repository.target, {
-                    customerId: data.customer.id,
-                    tableId: data.table.id,
+        const transaction = await this.connection.manager.transaction(async (transactionalEntityManager: any) => {
+            const session = transactionalEntityManager.create(this.repository.target, {
+                customerId: data.customer.id,
+                tableId: data.table.id,
                     status: TableSessionStatus.BOOKED,
                     unit: categoryPrice.unit,
                     duration: categoryPrice.duration,
                     freeMins: categoryPrice.freeMins
-                });
+            });
 
                 await transactionalEntityManager.save(session);
                 
                 const payment = await this.context.payment.createPayment(transactionalEntityManager, {
-                    customerId: data.customer.id,
-                    tableSessionId: session.id,
+                customerId: data.customer.id,
+                tableSessionId: session.id,
                     amount: categoryPrice.price,
-                    method: input.paymentMethod.paymentScheme,
+                method: input.paymentMethod.paymentScheme,
                     status: PaymentStatus.SUCCESS,
                 });
         
@@ -172,10 +172,10 @@ export default class TableSession extends BaseModel {
 
             if(transaction && transaction.error && transaction.error.length > 0) {
                 console.log('transaction.error: ', transaction.error);
-                return this.formatErrors([GlobalError.EXCEPTION], transaction.error);
-            }
+            return this.formatErrors([GlobalError.EXCEPTION], transaction.error);
+        }
 
-            return this.successResponse(transaction);
+        return this.successResponse(transaction);
         } catch (error: any) {
             console.log('error: ', error);
             return this.formatErrors([GlobalError.INTERNAL_SERVER_ERROR], error.message);

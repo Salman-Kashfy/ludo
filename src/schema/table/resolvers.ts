@@ -10,10 +10,7 @@ export default {
         }
     },
     Mutation: {
-        createTable(root: any, {input}:any, context:Context) {
-            return context.table.save(input);
-        },
-        updateTable(root: any, {input}: any, context: Context) {
+        saveTable(root: any, {input}:any, context:Context) {
             return context.table.save(input);
         },
         updateTableStatus(root: any, {input}: any, context: Context) {

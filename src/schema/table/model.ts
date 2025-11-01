@@ -95,6 +95,8 @@ export default class Table extends BaseModel {
             }
         }
 
+        console.log({uuid:input.uuid, existingEntity: data.existingEntity});
+
         if (errors.length > 0) {
             return this.formatErrors(errors, errorMessage);
         }
@@ -107,8 +109,6 @@ export default class Table extends BaseModel {
         if (!isEmpty(errors)) {
             return this.formatErrors(errors, errorMessage);
         }
-
-        console.log(input);
 
         try {
             const { category, company, existingEntity } = data;
