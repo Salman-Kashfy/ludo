@@ -30,6 +30,9 @@ export class Table extends BaseEntity {
     @Index()
     companyId!: number;
 
+    @Column({ name: 'sort_no', type: 'int', nullable: true })
+    sortNo?: number;
+
     @Column({ 
         type: 'enum', 
         enum: TableStatus, 

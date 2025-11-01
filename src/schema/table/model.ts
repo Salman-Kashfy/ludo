@@ -42,6 +42,8 @@ export default class Table extends BaseModel {
             _query.andWhere('t.status = :status', { status: params.status });
         }
 
+        _query.orderBy('t.sortNo', 'ASC');
+
         return this.successResponse(await _query.getMany());
     }
 
@@ -95,8 +97,6 @@ export default class Table extends BaseModel {
             }
         }
 
-        console.log({uuid:input.uuid, existingEntity: data.existingEntity});
-
         if (errors.length > 0) {
             return this.formatErrors(errors, errorMessage);
         }
@@ -118,6 +118,7 @@ export default class Table extends BaseModel {
             table.categoryId = category.id;
             table.companyId = company.id;
             table.status = input.status || TableStatus.AVAILABLE;
+            table.sortNo = input.sortNo;
             table.createdById = table.createdById || this.context.user.id;
             table.lastUpdatedById = this.context.user.id;
 

@@ -6,6 +6,7 @@ export interface TableInput {
     categoryUuid: string
     status?: TableStatus
     companyUuid: string
+    sortNo?: number
 }
 
 export interface TableFilter {

@@ -9,6 +9,7 @@ type Table {
     name: String!
     categoryUuid: ID!
     status: TableStatus!
+    sortNo: Int
     category: Category!
     tableSessions: [TableSession]
 }
@@ -61,6 +62,7 @@ input SaveTableInput {
     categoryUuid: ID!
     status: TableStatus
     companyUuid: ID!
+    sortNo: Int
 }
 
 input UpdateTableStatusInput {

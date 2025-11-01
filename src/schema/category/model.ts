@@ -39,7 +39,8 @@ export default class Category extends BaseModel {
         if (!isEmpty(params?.searchText)) {
             _query.andWhere('c.name ILIKE :searchText', { searchText: `%${params.searchText}%` });
         }
-        _query.orderBy('t.name', 'ASC');
+
+        _query.orderBy('t.sortNo', 'ASC');
         _query.addOrderBy('cp.price', 'ASC');
 
         return { list: await _query.getMany() };
