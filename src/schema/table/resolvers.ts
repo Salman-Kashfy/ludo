@@ -2,11 +2,11 @@ import Context from '../context';
 
 export default {
     Query: {
-        table(root: any, {id}: any, context:Context) {
-            return context.table.show(id);
+        table(root: any, {uuid}: any, context:Context) {
+            return context.table.show(uuid);
         },
-        tables(root: any, {paging, params}: any, context:Context) {
-            return context.table.index(paging, params);
+        tables(root: any, {params}: any, context:Context) {
+            return context.table.index(params);
         }
     },
     Mutation: {

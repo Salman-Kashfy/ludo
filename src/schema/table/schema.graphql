@@ -18,7 +18,7 @@ type Table {
 #------------------------
 extend type Query {
     table(uuid: ID!): TablePayload @requireAuth @requirePermissions(permissions: ["table:view"])
-    tables(paging: PaginatorInput, params: TableFilter): TablesPayload! @requireAuth @requirePermissions(permissions: ["table:view"])
+    tables(params: TableFilter): TablesPayload! @requireAuth @requirePermissions(permissions: ["table:view"])
 }
 
 #------------------------
@@ -35,6 +35,7 @@ extend type Mutation {
 #------------------------
 input TableFilter {
     searchText: String
+    companyUuid: ID!
     categoryUuid: ID
     status: TableStatus
 }
@@ -45,8 +46,10 @@ type TablePayload {
     errorMessage: String
 }
 type TablesPayload {
-    list: [Table]
-    paging: PaginatorOutputUpdated
+    data: [Table]
+    errors: [GlobalError]
+    status: Boolean
+    errorMessage: String
 }
 
 #------------------------

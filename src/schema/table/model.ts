@@ -5,7 +5,7 @@ import Context from "../context";
 import {GlobalError} from "../root/enum";
 import {isEmpty} from "lodash";
 import {PagingInterface} from "../../interfaces";
-import { accessRulesByRoleHierarchyUuid } from '../../shared/lib/DataRoleUtils';
+import { accessRulesByRoleHierarchyUuid, accessRulesByRoleHierarchy } from '../../shared/lib/DataRoleUtils';
 
 export default class Table extends BaseModel {
     repository: any;
@@ -15,10 +15,20 @@ export default class Table extends BaseModel {
         super(connection, connection.getRepository(TableEntity), context);
     }
 
-    async index(paging: PagingInterface, params: TableFilter) {
+    async index(params: TableFilter) {
+
+        if (!(await accessRulesByRoleHierarchyUuid(this.context, {companyUuid: params.companyUuid}))) {
+            return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
+        }
+
+        const company = await this.context.company.repository.findOne({ where: { uuid: params.companyUuid } });
+        if (!company) {
+            return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Company not found');
+        }
+
         const _query = this.repository.createQueryBuilder('t')
             .leftJoinAndSelect('t.category', 'category')
-            .leftJoinAndSelect('t.categoryPrices', 'categoryPrices');
+            .andWhere('t.companyId = :companyId', { companyId: company.id });
         
         if (!isEmpty(params.searchText)) {
             _query.andWhere('t.name ILIKE :searchText', { searchText: `%${params.searchText}%` });
@@ -32,21 +42,25 @@ export default class Table extends BaseModel {
             _query.andWhere('t.status = :status', { status: params.status });
         }
 
-        return await this.paginator(_query, paging);
+        return this.successResponse(await _query.getMany());
     }
 
-    async show(id: number) {
+    async show(uuid: string) {
         try {
             const data = await this.repository.findOne({ 
-                where: { id },
+                where: { uuid },
                 relations: ['category']
             });
-            return {
-                data,
-                status: true,
-                errors: null,
-                errorMessage: null
-            };
+
+            if(!data) {
+                return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Table not found');
+            }
+
+            if(!(await accessRulesByRoleHierarchy(this.context, { companyId: data.category.companyId }))) {
+                return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
+            }
+
+            return this.successResponse(data);
         } catch (error:any) {
             return {
                 data: null,
@@ -94,6 +108,8 @@ export default class Table extends BaseModel {
             return this.formatErrors(errors, errorMessage);
         }
 
+        console.log(input);
+
         try {
             const { category, company, existingEntity } = data;
             let table = existingEntity || new TableEntity();
@@ -102,13 +118,14 @@ export default class Table extends BaseModel {
             table.categoryId = category.id;
             table.companyId = company.id;
             table.status = input.status || TableStatus.AVAILABLE;
-            table.createdById = table.createdById || this.context.auth.id;
-            table.lastUpdatedById = this.context.auth.id;
+            table.createdById = table.createdById || this.context.user.id;
+            table.lastUpdatedById = this.context.user.id;
 
-            table = await this.repository.save(data);
+            table = await this.repository.save(table);
 
             return this.successResponse(table);
         } catch (error:any) {
+            console.log(error);
             return {
                 data: null,
                 status: false,

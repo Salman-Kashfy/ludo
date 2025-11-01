@@ -9,6 +9,7 @@ export interface TableInput {
 }
 
 export interface TableFilter {
+    companyUuid: string
     searchText?: string
     categoryId?: number
     status?: TableStatus
