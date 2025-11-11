@@ -1,0 +1,28 @@
+export enum TournamentStatus {
+    UPCOMING = 'UPCOMING',
+    RUNNING = 'RUNNING',
+    COMPLETED = 'COMPLETED',
+    CANCELLED = 'CANCELLED',
+    POSTPONED = 'POSTPONED',
+}
+
+export interface TournamentInput {
+    uuid?: string;
+    name: string;
+    date: string;
+    startTime: string;
+    entryFee?: number;
+    prizePool?: number;
+    currencyName?: string;
+    playerLimit: number;
+    status?: TournamentStatus;
+}
+
+export interface TournamentFilter {
+    companyUuid: string;
+    searchText?: string;
+    status?: TournamentStatus;
+    dateFrom?: string;
+    dateTo?: string;
+}
+

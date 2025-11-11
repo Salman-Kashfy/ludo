@@ -1,0 +1,86 @@
+type Tournament {
+    uuid: ID!
+    name: String!
+    date: String!
+    startTime: String!
+    entryFee: Float!
+    prizePool: Float!
+    currencyName: String!
+    playerLimit: Int!
+    status: TournamentStatus!
+    createdAt: String!
+    updatedAt: String!
+}
+
+enum TournamentStatus {
+    UPCOMING
+    RUNNING
+    COMPLETED
+    CANCELLED
+    POSTPONED
+}
+
+#------------------------
+# Queries
+#------------------------
+extend type Query {
+    tournament(uuid: ID!): TournamentPayload @requireAuth @requirePermissions(permissions: ["tournament:view"])
+    tournaments(paging: PaginatorInput, params: TournamentFilter): TournamentsPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
+}
+
+#------------------------
+# Mutations
+#------------------------
+extend type Mutation {
+    saveTournament(input: SaveTournamentInput!): SaveTournamentPayload @requireAuth @requirePermissions(permissions: ["tournament:upsert"])
+    deleteTournament(uuid: ID!): DeleteTournamentPayload @requireAuth @requirePermissions(permissions: ["tournament:delete"])
+}
+
+#------------------------
+# Input & Payload types
+#------------------------
+input TournamentFilter {
+    companyUuid: ID!
+    searchText: String
+    status: TournamentStatus
+    dateFrom: String
+    dateTo: String
+}
+
+input SaveTournamentInput {
+    uuid: ID
+    name: String!
+    date: String!
+    startTime: String!
+    entryFee: Float
+    prizePool: Float
+    currencyName: String
+    playerLimit: Int!
+}
+
+type TournamentPayload {
+    data: Tournament
+    errors: GlobalError
+    status: Boolean
+    errorMessage: String
+}
+
+type TournamentsPayload {
+    list: [Tournament]
+    paging: PaginatorOutputUpdated
+}
+
+type SaveTournamentPayload {
+    data: Tournament
+    errors: GlobalError
+    status: Boolean
+    errorMessage: String
+}
+
+type DeleteTournamentPayload {
+    data: Boolean
+    errors: GlobalError
+    status: Boolean
+    errorMessage: String
+}
+
