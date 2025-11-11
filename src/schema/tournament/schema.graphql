@@ -18,6 +18,7 @@ enum TournamentStatus {
     COMPLETED
     CANCELLED
     POSTPONED
+    UNKNOWN
 }
 
 #------------------------

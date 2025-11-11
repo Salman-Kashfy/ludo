@@ -4,6 +4,7 @@ export enum TournamentStatus {
     COMPLETED = 'COMPLETED',
     CANCELLED = 'CANCELLED',
     POSTPONED = 'POSTPONED',
+    UNKNOWN = 'UNKNOWN',
 }
 
 export interface TournamentInput {
