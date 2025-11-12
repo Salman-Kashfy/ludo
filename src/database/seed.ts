@@ -10,6 +10,7 @@ import { Table } from './entity/Table';
 import { Permission } from './entity/Permission';
 import { Company } from './entity/Company';
 import { Customer } from './entity/Customer';
+import { Tournament } from './entity/Tournament';
 
 const COUNTRY_ID = 167
 const STATE_ID = 3008
@@ -32,6 +33,7 @@ import { permissions } from './objects/permissions';
 import { rolePermissions } from './objects/rolePermissions';
 import { companies } from './objects/companies';
 import { customers } from './objects/customers';
+import { tournaments } from './objects/tournaments';
 import {RolePermission} from "./entity/RolePermission";
 
 export const startSeeding = async () => {
@@ -82,6 +84,10 @@ export const startSeeding = async () => {
         console.log('Adding Users');
         const _users = await users({passwordHash, countryId:COUNTRY_ID,  companyId:COMPANY_ID, companyUuid: COMPANY_UUID});
         await connection.createQueryBuilder().insert().into(User).values(Object.values(_users)).execute();
+
+        console.log('Adding Tournaments');
+        const _tournaments = tournaments({companyId: COMPANY_ID});
+        await connection.createQueryBuilder().insert().into(Tournament).values(Object.values(_tournaments)).execute();
         
         console.log('Adding User Roles');
         const _userRoles = await userRoles();

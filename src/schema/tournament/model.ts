@@ -1,5 +1,6 @@
 import BaseModel from '../baseModel';
 import { Tournament as TournamentEntity } from '../../database/entity/Tournament';
+import { Company } from '../../database/entity/Company';
 import { Status, Roles } from '../../database/entity/root/enums';
 import { TournamentInput, TournamentFilter } from './types';
 import Context from '../context';
@@ -23,22 +24,15 @@ export default class Tournament extends BaseModel {
             return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
         }
         
+        // Get company ID from company UUID
+        const company = await this.context.company.repository.findOne({ where: { uuid: params.companyUuid } });
+        if (!company) {
+            return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Company not found');
+        }
+        
         const query = this.repository
             .createQueryBuilder('tournament')
-            .leftJoin('tournament.createdBy', 'createdBy');
-
-        const user: any = this.context.user;
-
-        if (!user) {
-            return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
-        }
-
-        // Restrict tournaments by role hierarchy
-        if (user.role?.name !== Roles.ADMIN) {
-            query.andWhere('createdBy.companyUuid = :companyUuid', { companyUuid: user.companyUuid });
-        }
-
-        query.andWhere('createdBy.companyUuid = :filterCompanyUuid', { filterCompanyUuid: params.companyUuid });
+            .andWhere('tournament.companyId = :companyId', { companyId: company.id });
 
         // By default only active tournaments
         if (params.status) {
@@ -69,14 +63,14 @@ export default class Tournament extends BaseModel {
         try {
             const data = await this.repository.findOne({
                 where: { uuid },
-                relations: ['createdBy'],
+                relations: ['company'],
             });
 
             if (!data || data.status === Status.INACTIVE) {
                 return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Tournament not found');
             }
 
-            if (!accessRulesByRoleHierarchyUuid(this.context, { companyUuid: data.createdBy?.companyUuid })) {
+            if (!(await accessRulesByRoleHierarchy(this.context, { companyId: data.companyId }))) {
                 return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
             }
 
@@ -90,6 +84,15 @@ export default class Tournament extends BaseModel {
         const errors: GlobalError[] = [];
         let errorMessage: string | null = null;
         const data: any = {};
+
+        if (!(await accessRulesByRoleHierarchyUuid(this.context, { companyUuid: input.companyUuid }))) {
+            return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
+        }
+
+        data.company = await this.context.company.repository.findOne({ where: { uuid: input.companyUuid } });
+        if (!data.company) {
+            return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Company not found');
+        }
 
         if (isEmpty(input.name)) {
             errors.push(GlobalError.REQUIRED_FIELDS_MISSING);
@@ -114,13 +117,13 @@ export default class Tournament extends BaseModel {
         if (input.uuid) {
             const existing = await this.repository.findOne({ 
                 where: { uuid: input.uuid },
-                relations: ['createdBy'],
+                relations: ['company'],
             });
             if (!existing) {
                 return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Tournament not found');
             }
 
-            if (!accessRulesByRoleHierarchyUuid(this.context, { companyUuid: existing.createdBy?.companyUuid })) {
+            if (!(await accessRulesByRoleHierarchy(this.context, { companyId: existing.companyId }))) {
                 return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
             }
 
@@ -146,7 +149,7 @@ export default class Tournament extends BaseModel {
         }
 
         try {
-            const { existing } = data;
+            const { existing, company } = data;
             let tournament: TournamentEntity = existing || new TournamentEntity();
 
             tournament.name = input.name;
@@ -156,7 +159,8 @@ export default class Tournament extends BaseModel {
             tournament.prizePool = input.prizePool ?? 0;
             tournament.currencyName = input.currencyName ?? 'PKR';
             tournament.playerLimit = input.playerLimit;
-            tournament.status = input.status
+            tournament.status = input.status;
+            tournament.companyId = company.id;
             tournament.createdById = tournament.createdById || this.context.user.id;
             tournament.lastUpdatedById = this.context.user.id;
 
@@ -171,13 +175,13 @@ export default class Tournament extends BaseModel {
         try {
             const tournament = await this.repository.findOne({ 
                 where: { uuid },
-                relations: ['createdBy'],
+                relations: ['company'],
             });
             if (!tournament) {
                 return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Tournament not found');
             }
 
-            if (!accessRulesByRoleHierarchyUuid(this.context, { companyUuid: tournament.createdBy?.companyUuid })) {
+            if (!(await accessRulesByRoleHierarchy(this.context, { companyId: tournament.companyId }))) {
                 return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
             }
 

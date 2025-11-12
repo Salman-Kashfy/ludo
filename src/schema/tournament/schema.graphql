@@ -50,11 +50,12 @@ input TournamentFilter {
 
 input SaveTournamentInput {
     uuid: ID
+    companyUuid: ID!
     name: String!
     date: String!
     startTime: String!
-    entryFee: Float
-    prizePool: Float
+    entryFee: Float!
+    prizePool: Float!
     currencyName: String
     playerLimit: Int!
 }

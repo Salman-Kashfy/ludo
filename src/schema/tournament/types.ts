@@ -9,6 +9,7 @@ export enum TournamentStatus {
 
 export interface TournamentInput {
     uuid?: string;
+    companyUuid: string;
     name: string;
     date: string;
     startTime: string;

@@ -7,10 +7,12 @@ import {
     BaseEntity,
     ManyToOne,
     JoinColumn,
+    Index,
 } from 'typeorm';
 import { Length, IsDateString, IsInt, Min, IsNumber } from 'class-validator';
 import { TournamentStatus } from '../../schema/tournament/types';
 import { User } from './User';
+import { Company } from './Company';
 
 @Entity({ name: 'tournaments' })
 export class Tournament extends BaseEntity {
@@ -51,6 +53,10 @@ export class Tournament extends BaseEntity {
     @Column({ type: 'enum', enum: TournamentStatus, default: TournamentStatus.UPCOMING })
     status?: TournamentStatus;
 
+    @Column({ name: 'company_id' })
+    @Index()
+    companyId!: number;
+
     @Column({ name: 'created_by_id' })
     createdById!: number;
 
@@ -75,6 +81,10 @@ export class Tournament extends BaseEntity {
     /**
      * Relations
      */
+    @ManyToOne(() => Company)
+    @JoinColumn({ name: 'company_id' })
+    company!: Company;
+
     @ManyToOne(() => User, {
         onDelete: 'CASCADE',
         onUpdate: 'CASCADE',

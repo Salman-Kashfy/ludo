@@ -11,6 +11,7 @@ import {
   import { Invoice } from './Invoice';
   import { Customer } from './Customer';
   import { TableSession } from './TableSession';
+  import { Tournament } from './Tournament';
   import { PaymentStatus, PaymentMethod } from '../../schema/payment/types';
   
   @Entity({ name: 'payments' })
@@ -32,6 +33,10 @@ import {
     @Column({ name: 'table_session_id', nullable: true })
     @Index()
     tableSessionId: number | null;
+
+    @Column({ name: 'tournament_id', type: 'int', nullable: true })
+    @Index()
+    tournamentId: number | null;
   
     @Column({ type: 'numeric', precision: 10, scale: 2 })
     amount: number;
@@ -77,5 +82,9 @@ import {
     @ManyToOne(() => TableSession, { nullable: true })
     @JoinColumn({ name: 'table_session_id' })
     tableSession: TableSession | null;
+
+    @ManyToOne(() => Tournament, { nullable: true })
+    @JoinColumn({ name: 'tournament_id' })
+    tournament: Tournament | null;
   }
   
