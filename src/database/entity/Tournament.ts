@@ -13,6 +13,7 @@ import { Length, IsDateString, IsInt, Min, IsNumber } from 'class-validator';
 import { TournamentStatus } from '../../schema/tournament/types';
 import { User } from './User';
 import { Company } from './Company';
+import { Category } from './Category';
 
 @Entity({ name: 'tournaments' })
 export class Tournament extends BaseEntity {
@@ -57,6 +58,10 @@ export class Tournament extends BaseEntity {
     @Index()
     companyId!: number;
 
+    @Column({ name: 'category_id' })
+    @Index()
+    categoryId!: number;
+
     @Column({ name: 'created_by_id' })
     createdById!: number;
 
@@ -81,6 +86,10 @@ export class Tournament extends BaseEntity {
     /**
      * Relations
      */
+    @ManyToOne(() => Category)
+    @JoinColumn({ name: 'category_id', referencedColumnName: 'id' })
+    category!: Category;
+    
     @ManyToOne(() => Company)
     @JoinColumn({ name: 'company_id' })
     company!: Company;

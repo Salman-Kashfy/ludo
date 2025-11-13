@@ -10,6 +10,9 @@ type Tournament {
     status: TournamentStatus!
     createdAt: String!
     updatedAt: String!
+
+    #Relations
+    category:Category
 }
 
 enum TournamentStatus {
@@ -51,6 +54,7 @@ input TournamentFilter {
 input SaveTournamentInput {
     uuid: ID
     companyUuid: ID!
+    categoryUuid: ID!
     name: String!
     date: String!
     startTime: String!

@@ -3,6 +3,9 @@ import { SEED_USERS } from "../../shared/config";
 
 interface TournamentInput {
     companyId: number
+    regularCategoryId: number
+    specialCategoryId: number
+    premiumCategoryId: number
 }
 
 export const tournaments = (input: TournamentInput) => [
@@ -16,6 +19,7 @@ export const tournaments = (input: TournamentInput) => [
         playerLimit: 20,
         status: TournamentStatus.UPCOMING,
         companyId: input.companyId,
+        categoryId: input.regularCategoryId,
         createdById: SEED_USERS.ADMIN.ID,
         lastUpdatedById: SEED_USERS.ADMIN.ID,
     },
@@ -29,6 +33,7 @@ export const tournaments = (input: TournamentInput) => [
         playerLimit: 30,
         status: TournamentStatus.UPCOMING,
         companyId: input.companyId,
+        categoryId: input.specialCategoryId,
         createdById: SEED_USERS.ADMIN.ID,
         lastUpdatedById: SEED_USERS.ADMIN.ID,
     },
@@ -42,6 +47,7 @@ export const tournaments = (input: TournamentInput) => [
         playerLimit: 25,
         status: TournamentStatus.UPCOMING,
         companyId: input.companyId,
+        categoryId: input.premiumCategoryId,
         createdById: SEED_USERS.ADMIN.ID,
         lastUpdatedById: SEED_USERS.ADMIN.ID,
     },

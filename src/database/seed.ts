@@ -86,7 +86,12 @@ export const startSeeding = async () => {
         await connection.createQueryBuilder().insert().into(User).values(Object.values(_users)).execute();
 
         console.log('Adding Tournaments');
-        const _tournaments = tournaments({companyId: COMPANY_ID});
+        const _tournaments = tournaments({
+            companyId: COMPANY_ID,
+            regularCategoryId: REGULAR_CATEGORY_ID,
+            specialCategoryId: SPECIAL_CATEGORY_ID,
+            premiumCategoryId: PREMIUM_CATEGORY_ID
+        });
         await connection.createQueryBuilder().insert().into(Tournament).values(Object.values(_tournaments)).execute();
         
         console.log('Adding User Roles');

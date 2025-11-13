@@ -32,6 +32,7 @@ export default class Tournament extends BaseModel {
         
         const query = this.repository
             .createQueryBuilder('tournament')
+            .leftJoinAndSelect('tournament.category', 'category')
             .andWhere('tournament.companyId = :companyId', { companyId: company.id });
 
         // By default only active tournaments
@@ -63,7 +64,7 @@ export default class Tournament extends BaseModel {
         try {
             const data = await this.repository.findOne({
                 where: { uuid },
-                relations: ['company'],
+                relations: ['company', 'category'],
             });
 
             if (!data || data.status === Status.INACTIVE) {
@@ -92,6 +93,11 @@ export default class Tournament extends BaseModel {
         data.company = await this.context.company.repository.findOne({ where: { uuid: input.companyUuid } });
         if (!data.company) {
             return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Company not found');
+        }
+
+        data.category = await this.context.category.repository.findOne({ where: { uuid: input.categoryUuid } });
+        if (!data.category) {
+            return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Category not found');
         }
 
         if (isEmpty(input.name)) {
@@ -149,7 +155,7 @@ export default class Tournament extends BaseModel {
         }
 
         try {
-            const { existing, company } = data;
+            const { existing, company, category } = data;
             let tournament: TournamentEntity = existing || new TournamentEntity();
 
             tournament.name = input.name;
@@ -161,6 +167,7 @@ export default class Tournament extends BaseModel {
             tournament.playerLimit = input.playerLimit;
             tournament.status = input.status;
             tournament.companyId = company.id;
+            tournament.categoryId = category.id;
             tournament.createdById = tournament.createdById || this.context.user.id;
             tournament.lastUpdatedById = this.context.user.id;
 
