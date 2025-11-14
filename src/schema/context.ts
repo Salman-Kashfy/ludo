@@ -9,6 +9,7 @@ import RolePermissionModel from './role-permission/model';
 import CategoryModel from './category/model';
 import CategoryPriceModel from './category-price/model';
 import TournamentModel from './tournament/model';
+import TournamentPlayerModel from './tournament-player/model';
 import TableModel from './table/model';
 import ShiftModel from './shift/model';
 import CustomerModel from './customer/model';
@@ -26,6 +27,7 @@ export default class Context {
     category: CategoryModel;
     categoryPrice: CategoryPriceModel;
     tournament: TournamentModel;
+    tournamentPlayer: TournamentPlayerModel;
     table: TableModel;
     shift: ShiftModel;
     customer: CustomerModel;
@@ -49,6 +51,7 @@ export default class Context {
         this.category = new CategoryModel(connection, this);
         this.categoryPrice = new CategoryPriceModel(connection, this);
         this.tournament = new TournamentModel(connection, this);
+        this.tournamentPlayer = new TournamentPlayerModel(connection, this);
         this.table = new TableModel(connection, this);
         this.shift = new ShiftModel(connection, this);
         this.customer = new CustomerModel(connection, this);

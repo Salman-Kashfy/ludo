@@ -1,0 +1,26 @@
+type TournamentPlayer {
+    tournamentId: Int!
+    customerId: Int!
+    tableId: Int
+
+    #Relations
+    customer: Customer
+    table: Table
+}
+
+#------------------------
+# Queries
+#------------------------
+extend type Query {
+    tournamentPlayers(tournamentUuid: ID!): TournamentPlayersPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
+}
+
+#------------------------
+# Payload types
+#------------------------
+type TournamentPlayersPayload {
+    list: [TournamentPlayer]
+    errors: GlobalError
+    status: Boolean
+    errorMessage: String
+}
