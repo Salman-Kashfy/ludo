@@ -51,6 +51,11 @@ export class Tournament extends BaseEntity {
     @Min(2)
     playerLimit!: number;
 
+    @Column({ name: 'player_count', type: 'int', default: 0 })
+    @IsInt()
+    @Min(0)
+    playerCount!: number;
+
     @Column({ type: 'enum', enum: TournamentStatus, default: TournamentStatus.UPCOMING })
     status?: TournamentStatus;
 

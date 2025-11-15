@@ -7,6 +7,7 @@ type Tournament {
     prizePool: Float!
     currencyName: String!
     playerLimit: Int!
+    playerCount: Int!
     status: TournamentStatus!
     createdAt: String!
     updatedAt: String!
