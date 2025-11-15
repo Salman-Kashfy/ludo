@@ -19,6 +19,9 @@ extend type Query {
 #------------------------
 # Mutations
 #------------------------
+extend type Mutation {
+    playerRegistration(input: PlayerRegistrationInput!): SaveTournamentPlayerPayload! @requireAuth @requirePermissions(permissions: ["tournament:create"])
+}
 
 
 #------------------------
@@ -38,7 +41,20 @@ type PlayerRegistrationBillPayload {
     errorMessage: String
 }
 
+type SaveTournamentPlayerPayload {
+    data: TournamentPlayer
+    errors: GlobalError
+    status: Boolean
+    errorMessage: String
+}
+
 input PlayerRegistrationBillInput {
     customerUuid: ID!
     tournamentUuid: ID!
+}
+
+input PlayerRegistrationInput {
+    customerUuid: ID!
+    tournamentUuid: ID!
+    tableUuid: ID!
 }
