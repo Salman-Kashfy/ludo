@@ -5,6 +5,9 @@ export default {
         tournamentPlayers(_: any, { tournamentUuid }: any, context: Context) {
             return context.tournamentPlayer.index(tournamentUuid);
         },
-    },
+        playerRegistrationBill(_: any, { params }: any, context: Context) {
+            return context.tournamentPlayer.playerRegistrationBill(params);
+        },
+    }
 };
 

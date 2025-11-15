@@ -13,7 +13,13 @@ type TournamentPlayer {
 #------------------------
 extend type Query {
     tournamentPlayers(tournamentUuid: ID!): TournamentPlayersPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
+    playerRegistrationBill(params: PlayerRegistrationBillInput!): PlayerRegistrationBillPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
 }
+
+#------------------------
+# Mutations
+#------------------------
+
 
 #------------------------
 # Payload types
@@ -23,4 +29,16 @@ type TournamentPlayersPayload {
     errors: GlobalError
     status: Boolean
     errorMessage: String
+}
+
+type PlayerRegistrationBillPayload {
+    data: Tournament
+    errors: GlobalError
+    status: Boolean
+    errorMessage: String
+}
+
+input PlayerRegistrationBillInput {
+    customerUuid: ID!
+    tournamentUuid: ID!
 }
