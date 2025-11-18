@@ -18,10 +18,6 @@ export class TournamentPlayer extends BaseEntity {
     @Index()
     customerId!: number;
 
-    @Column({ name: 'table_id', type: 'int' })
-    @Index()
-    tableId!: number;
-
     @Column({ 
         type: 'enum', 
         enum: PlayerTournamentStatus, 
@@ -49,8 +45,4 @@ export class TournamentPlayer extends BaseEntity {
     @ManyToOne(() => Customer, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
     @JoinColumn({ name: 'customer_id' })
     customer!: Customer;
-
-    @ManyToOne(() => Table, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
-    @JoinColumn({ name: 'table_id' })
-    table!: Table;
 }

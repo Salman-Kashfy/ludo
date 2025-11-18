@@ -67,6 +67,5 @@ input PlayerRegistrationBillInput {
 input PlayerRegistrationInput {
     customerUuid: ID!
     tournamentUuid: ID!
-    tableUuid: ID!
     paymentMethod: PaymentMethodInput!
 }
