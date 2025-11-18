@@ -8,6 +8,9 @@ export default {
         playerRegistrationBill(_: any, { params }: any, context: Context) {
             return context.tournamentPlayer.playerRegistrationBill(params);
         },
+        availableTables(_: any, { tournamentUuid }: any, context: Context) {
+            return context.tournamentPlayer.availableTables(tournamentUuid);
+        },
     },
     Mutation: {
         playerRegistration(_: any, { input }: any, context: Context) {

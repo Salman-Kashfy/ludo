@@ -14,6 +14,7 @@ type TournamentPlayer {
 extend type Query {
     tournamentPlayers(tournamentUuid: ID!): TournamentPlayersPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
     playerRegistrationBill(params: PlayerRegistrationBillInput!): PlayerRegistrationBillPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
+    availableTables(tournamentUuid: ID!): AvailableTablesPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
 }
 
 #------------------------
@@ -39,6 +40,10 @@ type PlayerRegistrationBillPayload {
     errors: GlobalError
     status: Boolean
     errorMessage: String
+}
+
+type AvailableTablesPayload {
+    list: [Table]
 }
 
 type SaveTournamentPlayerPayload {

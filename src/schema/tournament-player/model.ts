@@ -4,6 +4,7 @@ import Context from '../context';
 import { GlobalError } from '../root/enum';
 import { accessRulesByRoleHierarchy } from '../../shared/lib/DataRoleUtils';
 import { Status } from '../../database/entity/root/enums';
+import { Not, In } from 'typeorm';
 
 export default class TournamentPlayer extends BaseModel {
     repository: any;
@@ -186,6 +187,38 @@ export default class TournamentPlayer extends BaseModel {
             return this.successResponse(savedPlayer);
         } catch (error: any) {
             console.error('Player registration error:', error);
+            return this.formatErrors([GlobalError.INTERNAL_SERVER_ERROR], error.message);
+        }
+    }
+
+    async availableTables(tournamentUuid: string) {
+        try {
+            const tournament = await this.context.tournament.repository.findOne({
+                where: { uuid: tournamentUuid },
+                relations: ['company'],
+            });
+
+            if (!tournament) {
+                return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Tournament not found');
+            }
+
+            if (!(await accessRulesByRoleHierarchy(this.context, { companyId: tournament.companyId }))) {
+                return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
+            }
+
+            const tournamentPlayers = await this.repository.find({
+                select: ['tableId'],
+                where: { tournamentId: tournament.id },
+            });
+
+            const tableIds = tournamentPlayers.map((player: any) => player.tableId);
+
+            const tables = await this.context.table.repository.find({
+                where: { categoryId: tournament.categoryId, status: Status.ACTIVE, id: Not(In(tableIds)) },
+            });
+
+            return { list: tables }
+        } catch (error: any) {
             return this.formatErrors([GlobalError.INTERNAL_SERVER_ERROR], error.message);
         }
     }
