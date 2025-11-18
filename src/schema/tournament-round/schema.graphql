@@ -1,0 +1,44 @@
+type TournamentRound {
+    id: ID!
+    uuid: ID!
+    tournamentId: Int!
+    roundNumber: Int!
+    roundName: String
+    playersCount: Int!
+    groupsCount: Int!
+    matchesCount: Int!
+    completedMatches: Int!
+    isCompleted: Boolean!
+    createdAt: String!
+    updatedAt: String!
+
+    #Relations
+    tournament: Tournament
+    matches: [TournamentMatch]
+}
+
+#------------------------
+# Queries
+#------------------------
+extend type Query {
+    tournamentRounds(tournamentUuid: ID!): TournamentRoundsPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
+    tournamentRound(tournamentUuid: ID!, roundNumber: Int!): TournamentRoundPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
+}
+
+#------------------------
+# Payload types
+#------------------------
+type TournamentRoundsPayload {
+    list: [TournamentRound]
+    errors: GlobalError
+    status: Boolean
+    errorMessage: String
+}
+
+type TournamentRoundPayload {
+    data: TournamentRound
+    errors: GlobalError
+    status: Boolean
+    errorMessage: String
+}
+

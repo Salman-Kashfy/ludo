@@ -1,0 +1,70 @@
+type TournamentMatch {
+    id: ID!
+    uuid: ID!
+    tournamentId: Int!
+    roundId: Int!
+    roundNumber: Int!
+    matchNumber: Int!
+    groupNumber: Int
+    tableId: Int
+    status: MatchStatus!
+    winnerCustomerId: ID
+    startedAt: String
+    completedAt: String
+    createdAt: String!
+    updatedAt: String!
+
+    #Relations
+    tournament: Tournament
+    round: TournamentRound
+    table: Table
+    winner: Customer
+    players: [TournamentMatchPlayer]
+}
+
+enum MatchStatus {
+    PENDING
+    IN_PROGRESS
+    COMPLETED
+    CANCELLED
+}
+
+#------------------------
+# Queries
+#------------------------
+extend type Query {
+    tournamentMatches(tournamentUuid: ID!, roundNumber: Int): TournamentMatchesPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
+    tournamentMatch(matchUuid: ID!): TournamentMatchPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
+    tournamentMatchById(matchId: ID!): TournamentMatchPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
+}
+
+#------------------------
+# Mutations
+#------------------------
+extend type Mutation {
+    startMatch(matchUuid: ID!): TournamentMatchPayload! @requireAuth @requirePermissions(permissions: ["tournament:update"])
+    declareMatchWinner(input: DeclareMatchWinnerInput!): TournamentMatchPayload! @requireAuth @requirePermissions(permissions: ["tournament:update"])
+}
+
+#------------------------
+# Input & Payload types
+#------------------------
+input DeclareMatchWinnerInput {
+    matchUuid: ID!
+    winnerCustomerUuid: ID!
+}
+
+type TournamentMatchesPayload {
+    list: [TournamentMatch]
+    errors: GlobalError
+    status: Boolean
+    errorMessage: String
+}
+
+type TournamentMatchPayload {
+    data: TournamentMatch
+    errors: GlobalError
+    status: Boolean
+    errorMessage: String
+}
+

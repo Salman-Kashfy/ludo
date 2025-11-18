@@ -18,6 +18,9 @@ export class TournamentRound extends BaseEntity {
     @PrimaryGeneratedColumn()
     id!: number;
 
+    @Column('uuid', { unique: true, default: () => 'uuid_generate_v4()' })
+    uuid!: string;
+
     @Column({ name: 'tournament_id' })
     @Index()
     tournamentId!: number;

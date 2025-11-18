@@ -1,0 +1,29 @@
+type TournamentMatchPlayer {
+    id: ID!
+    matchId: Int!
+    tournamentPlayerId: Int!
+    position: Int
+    createdAt: String!
+
+    #Relations
+    match: TournamentMatch
+    tournamentPlayer: TournamentPlayer
+}
+
+#------------------------
+# Queries
+#------------------------
+extend type Query {
+    matchPlayers(matchUuid: ID!): MatchPlayersPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
+}
+
+#------------------------
+# Payload types
+#------------------------
+type MatchPlayersPayload {
+    list: [TournamentMatchPlayer]
+    errors: GlobalError
+    status: Boolean
+    errorMessage: String
+}
+

@@ -20,6 +20,8 @@ type Tournament {
     #Relations
     category: Category
     winner: Customer
+    rounds: [TournamentRound]
+    matches: [TournamentMatch]
 }
 
 enum TournamentStatus {
@@ -50,6 +52,7 @@ extend type Query {
 extend type Mutation {
     saveTournament(input: SaveTournamentInput!): SaveTournamentPayload @requireAuth @requirePermissions(permissions: ["tournament:upsert"])
     deleteTournament(uuid: ID!): DeleteTournamentPayload @requireAuth @requirePermissions(permissions: ["tournament:delete"])
+    startTournament(tournamentUuid: ID!): StartTournamentPayload! @requireAuth @requirePermissions(permissions: ["tournament:update"])
 }
 
 #------------------------
@@ -100,6 +103,13 @@ type SaveTournamentPayload {
 
 type DeleteTournamentPayload {
     data: Boolean
+    errors: GlobalError
+    status: Boolean
+    errorMessage: String
+}
+
+type StartTournamentPayload {
+    data: Tournament
     errors: GlobalError
     status: Boolean
     errorMessage: String

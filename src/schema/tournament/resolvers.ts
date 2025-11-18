@@ -16,6 +16,9 @@ export default {
         deleteTournament(_: any, { uuid }: any, context: Context) {
             return context.tournament.delete(uuid);
         },
+        startTournament(_: any, { tournamentUuid }: any, context: Context) {
+            return context.tournament.startTournament(tournamentUuid);
+        },
     },
 };
 
