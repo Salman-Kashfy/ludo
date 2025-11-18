@@ -80,32 +80,6 @@ export default class TournamentMatch extends BaseModel {
         }
     }
 
-    async getById(matchId: number) {
-        try {
-            const match = await this.repository.findOne({
-                where: { id: matchId },
-                relations: ['tournament', 'round', 'table', 'winner'],
-            });
-
-            if (!match) {
-                return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Match not found');
-            }
-
-            const tournament = await this.context.tournament.repository.findOne({
-                where: { id: match.tournamentId },
-                relations: ['company'],
-            });
-
-            if (!(await accessRulesByRoleHierarchy(this.context, { companyId: tournament!.companyId }))) {
-                return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
-            }
-
-            return this.successResponse(match);
-        } catch (error: any) {
-            return this.formatErrors([GlobalError.INTERNAL_SERVER_ERROR], error.message);
-        }
-    }
-
     async startMatch(matchUuid: string) {
         try {
             const match = await this.repository.findOne({

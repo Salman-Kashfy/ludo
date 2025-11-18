@@ -4,6 +4,8 @@ import Context from '../context';
 import { GlobalError } from '../root/enum';
 import { accessRulesByRoleHierarchy } from '../../shared/lib/DataRoleUtils';
 import { Status } from '../../database/entity/root/enums';
+import { PaymentStatus } from '../payment/types';
+import { PaymentMethodInput } from '../payment/types';
 
 export default class TournamentPlayer extends BaseModel {
     repository: any;
@@ -87,8 +89,8 @@ export default class TournamentPlayer extends BaseModel {
         }
     }
 
-    async playerRegistration(input: { customerUuid: string, tournamentUuid: string, tableUuid: string }) {
-        const { customerUuid, tournamentUuid, tableUuid } = input;
+    async playerRegistration(input: { customerUuid: string, tournamentUuid: string, tableUuid: string, paymentMethod: PaymentMethodInput }) {
+        const { customerUuid, tournamentUuid, tableUuid, paymentMethod } = input;
 
         try {
             // Validate customer exists
@@ -169,6 +171,21 @@ export default class TournamentPlayer extends BaseModel {
 
                 const savedTournamentPlayer = await transactionalEntityManager.save(tournamentPlayer);
 
+                // Create payment record for tournament entry fee
+                // Convert PaymentScheme to PaymentMethod (they have same enum values)
+                const paymentMethodEnum = paymentMethod.paymentScheme as any;
+                const paymentResult = await this.context.payment.createPayment(transactionalEntityManager, {
+                    customerId: customer.id,
+                    tournamentId: tournament.id,
+                    amount: tournament.entryFee,
+                    method: paymentMethodEnum,
+                    status: PaymentStatus.SUCCESS,
+                } as any);
+
+                if (!paymentResult || !paymentResult.status) {
+                    throw new Error('Payment processing failed');
+                }
+
                 // Increment tournament playerCount
                 tournament.playerCount = (tournament.playerCount || 0) + 1;
                 tournament.lastUpdatedById = this.context.user.id;
@@ -177,13 +194,7 @@ export default class TournamentPlayer extends BaseModel {
                 return savedTournamentPlayer;
             });
 
-            // Fetch the saved tournament player with relations
-            const savedPlayer = await this.repository.findOne({
-                where: { id: result.id },
-                relations: ['customer', 'table'],
-            });
-
-            return this.successResponse(savedPlayer);
+            return this.successResponse(tournament);
         } catch (error: any) {
             console.error('Player registration error:', error);
             return this.formatErrors([GlobalError.INTERNAL_SERVER_ERROR], error.message);
