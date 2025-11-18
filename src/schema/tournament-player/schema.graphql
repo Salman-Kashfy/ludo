@@ -2,10 +2,21 @@ type TournamentPlayer {
     tournamentId: Int!
     customerId: Int!
     tableId: Int
+    status: PlayerTournamentStatus!
+    eliminatedInRound: Int
+    finalPosition: Int
 
     #Relations
     customer: Customer
     table: Table
+}
+
+enum PlayerTournamentStatus {
+    ACTIVE
+    ELIMINATED
+    ADVANCED
+    WINNER
+    WITHDRAWN
 }
 
 #------------------------

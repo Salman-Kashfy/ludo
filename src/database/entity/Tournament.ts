@@ -10,10 +10,11 @@ import {
     Index,
 } from 'typeorm';
 import { Length, IsDateString, IsInt, Min, IsNumber } from 'class-validator';
-import { TournamentStatus } from '../../schema/tournament/types';
+import { TournamentStatus, TournamentFormat } from '../../schema/tournament/types';
 import { User } from './User';
 import { Company } from './Company';
 import { Category } from './Category';
+import { Customer } from './Customer';
 
 @Entity({ name: 'tournaments' })
 export class Tournament extends BaseEntity {
@@ -55,6 +56,32 @@ export class Tournament extends BaseEntity {
     @IsInt()
     @Min(0)
     playerCount!: number;
+
+    @Column({ 
+        type: 'enum', 
+        enum: TournamentFormat, 
+        default: TournamentFormat.GROUP_STAGE 
+    })
+    format!: TournamentFormat;
+
+    @Column({ name: 'players_per_group', type: 'int', nullable: true })
+    @IsInt()
+    @Min(2)
+    playersPerGroup?: number;
+
+    @Column({ name: 'number_of_rounds', type: 'int', nullable: true })
+    @IsInt()
+    @Min(1)
+    numberOfRounds?: number;
+
+    @Column({ name: 'current_round', type: 'int', default: 0 })
+    @IsInt()
+    @Min(0)
+    currentRound!: number;
+
+    @Column({ name: 'winner_customer_id', nullable: true })
+    @Index()
+    winnerCustomerId?: number;
 
     @Column({ type: 'enum', enum: TournamentStatus, default: TournamentStatus.UPCOMING })
     status?: TournamentStatus;
@@ -113,4 +140,8 @@ export class Tournament extends BaseEntity {
     })
     @JoinColumn({ name: 'last_updated_by_id', referencedColumnName: 'id' })
     lastUpdatedBy?: User;
+
+    @ManyToOne(() => Customer, { nullable: true })
+    @JoinColumn({ name: 'winner_customer_id' })
+    winner?: Customer;
 }

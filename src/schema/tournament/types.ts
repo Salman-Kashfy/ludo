@@ -7,6 +7,18 @@ export enum TournamentStatus {
     UNKNOWN = 'UNKNOWN',
 }
 
+export enum TournamentFormat {
+    GROUP_STAGE = 'GROUP_STAGE',
+    SINGLE_ELIMINATION = 'SINGLE_ELIMINATION',
+}
+
+export enum MatchStatus {
+    PENDING = 'PENDING',
+    IN_PROGRESS = 'IN_PROGRESS',
+    COMPLETED = 'COMPLETED',
+    CANCELLED = 'CANCELLED',
+}
+
 export interface TournamentInput {
     uuid?: string;
     companyUuid: string;
@@ -18,6 +30,9 @@ export interface TournamentInput {
     prizePool?: number;
     currencyName?: string;
     playerLimit: number;
+    format?: TournamentFormat;
+    playersPerGroup?: number;
+    numberOfRounds?: number;
     status?: TournamentStatus;
 }
 

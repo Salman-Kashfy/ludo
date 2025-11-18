@@ -8,12 +8,18 @@ type Tournament {
     currencyName: String!
     playerLimit: Int!
     playerCount: Int!
+    format: TournamentFormat!
+    playersPerGroup: Int
+    numberOfRounds: Int
+    currentRound: Int!
+    winnerCustomerId: ID
     status: TournamentStatus!
     createdAt: String!
     updatedAt: String!
 
     #Relations
-    category:Category
+    category: Category
+    winner: Customer
 }
 
 enum TournamentStatus {
@@ -23,6 +29,11 @@ enum TournamentStatus {
     CANCELLED
     POSTPONED
     UNKNOWN
+}
+
+enum TournamentFormat {
+    GROUP_STAGE
+    SINGLE_ELIMINATION
 }
 
 #------------------------
@@ -63,6 +74,9 @@ input SaveTournamentInput {
     prizePool: Float!
     currencyName: String
     playerLimit: Int!
+    format: TournamentFormat
+    playersPerGroup: Int
+    numberOfRounds: Int
 }
 
 type TournamentPayload {

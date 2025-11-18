@@ -1,6 +1,8 @@
 import { BaseEntity, Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { IsInt, Min } from 'class-validator';
 import { Customer } from './Customer';
 import { Table } from './Table';
+import { PlayerTournamentStatus } from '../../schema/tournament-player/playerStatus';
 
 @Entity({ name: 'tournament_players' })
 @Index(['tournamentId', 'customerId'], { unique: true })
@@ -19,6 +21,23 @@ export class TournamentPlayer extends BaseEntity {
     @Column({ name: 'table_id', type: 'int' })
     @Index()
     tableId!: number;
+
+    @Column({ 
+        type: 'enum', 
+        enum: PlayerTournamentStatus, 
+        default: PlayerTournamentStatus.ACTIVE 
+    })
+    status!: PlayerTournamentStatus;
+
+    @Column({ name: 'eliminated_in_round', type: 'int', nullable: true })
+    @IsInt()
+    @Min(1)
+    eliminatedInRound?: number;
+
+    @Column({ name: 'final_position', type: 'int', nullable: true })
+    @IsInt()
+    @Min(1)
+    finalPosition?: number;
 
     @CreateDateColumn({
         type: 'timestamptz',
