@@ -42,7 +42,7 @@ type PlayerRegistrationBillPayload {
 }
 
 type SaveTournamentPlayerPayload {
-    data: TournamentPlayer
+    data: Tournament
     errors: GlobalError
     status: Boolean
     errorMessage: String
@@ -56,5 +56,6 @@ input PlayerRegistrationBillInput {
 input PlayerRegistrationInput {
     customerUuid: ID!
     tournamentUuid: ID!
-    tableUuid: ID!
+    tableUuid: ID
+    paymentMethod: PaymentMethodInput!
 }

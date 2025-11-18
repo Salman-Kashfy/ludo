@@ -16,7 +16,7 @@ export class TournamentPlayer extends BaseEntity {
     @Index()
     customerId!: number;
 
-    @Column({ name: 'table_id', type: 'int' })
+    @Column({ name: 'table_id', type: 'int', nullable: true })
     @Index()
     tableId!: number;
 

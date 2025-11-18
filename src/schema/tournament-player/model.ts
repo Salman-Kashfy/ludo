@@ -1,9 +1,10 @@
 import BaseModel from '../baseModel';
 import { TournamentPlayer as TournamentPlayerEntity } from '../../database/entity/TournamentPlayer';
 import Context from '../context';
-import { GlobalError } from '../root/enum';
+import { GlobalError, PaymentStatus } from '../root/enum';
 import { accessRulesByRoleHierarchy } from '../../shared/lib/DataRoleUtils';
 import { Status } from '../../database/entity/root/enums';
+import { PaymentMethodInput } from '../payment/types';
 
 export default class TournamentPlayer extends BaseModel {
     repository: any;
@@ -87,8 +88,8 @@ export default class TournamentPlayer extends BaseModel {
         }
     }
 
-    async playerRegistration(input: { customerUuid: string, tournamentUuid: string, tableUuid: string }) {
-        const { customerUuid, tournamentUuid, tableUuid } = input;
+    async playerRegistration(input: { customerUuid: string, tournamentUuid: string, paymentMethod: PaymentMethodInput }) {
+        const { customerUuid, tournamentUuid, paymentMethod } = input;
 
         try {
             // Validate customer exists
@@ -132,42 +133,30 @@ export default class TournamentPlayer extends BaseModel {
                 return this.formatErrors([GlobalError.VALIDATION_ERROR], 'Tournament has reached maximum player limit');
             }
 
-            // Validate table exists and belongs to tournament's category
-            const table = await this.context.table.repository.findOne({
-                where: { uuid: tableUuid },
-                relations: ['category'],
-            });
-
-            if (!table) {
-                return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Table not found');
-            }
-
-            if (table.categoryId !== tournament.categoryId) {
-                return this.formatErrors([GlobalError.VALIDATION_ERROR], 'Table does not belong to tournament category');
-            }
-
-            // Check if table is already booked in this tournament
-            const tableBooked = await this.repository.findOne({
-                where: {
-                    tournamentId: tournament.id,
-                    tableId: table.id,
-                },
-            });
-
-            if (tableBooked) {
-                return this.formatErrors([GlobalError.ALREADY_EXISTS], 'Table is already booked for this tournament');
-            }
-
             // Use transaction to ensure atomicity
             const result = await this.connection.manager.transaction(async (transactionalEntityManager: any) => {
                 // Create TournamentPlayer record
                 const tournamentPlayer = transactionalEntityManager.create(TournamentPlayerEntity, {
                     tournamentId: tournament.id,
-                    customerId: customer.id,
-                    tableId: table.id,
+                    customerId: customer.id
                 });
 
                 const savedTournamentPlayer = await transactionalEntityManager.save(tournamentPlayer);
+
+                // Create payment record for tournament entry fee
+                // Convert PaymentScheme to PaymentMethod (they have same enum values)
+                const paymentMethodEnum = paymentMethod.paymentScheme as any;
+                const paymentResult = await this.context.payment.createPayment(transactionalEntityManager, {
+                    customerId: customer.id,
+                    tournamentId: tournament.id,
+                    amount: tournament.entryFee,
+                    method: paymentMethodEnum,
+                    status: PaymentStatus.SUCCESS,
+                } as any);
+
+                if (!paymentResult || !paymentResult.status) {
+                    throw new Error('Payment processing failed');
+                }
 
                 // Increment tournament playerCount
                 tournament.playerCount = (tournament.playerCount || 0) + 1;
@@ -177,13 +166,7 @@ export default class TournamentPlayer extends BaseModel {
                 return savedTournamentPlayer;
             });
 
-            // Fetch the saved tournament player with relations
-            const savedPlayer = await this.repository.findOne({
-                where: { id: result.id },
-                relations: ['customer', 'table'],
-            });
-
-            return this.successResponse(savedPlayer);
+            return this.successResponse(tournament);
         } catch (error: any) {
             console.error('Player registration error:', error);
             return this.formatErrors([GlobalError.INTERNAL_SERVER_ERROR], error.message);
