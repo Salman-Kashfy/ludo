@@ -5,6 +5,8 @@ import Context from '../schema/context';
 import { Status } from '../database/entity/root/enums';
 import { TableSessionStatus } from '../database/entity/TableSession';
 import { TournamentStatus } from '../schema/tournament/types';
+import { Not } from 'typeorm';
+import { TableStatus } from '../schema/table/types';
 
 export const tableStats = async (req:Request, res:Response) => {
     try {
@@ -13,7 +15,7 @@ export const tableStats = async (req:Request, res:Response) => {
         
         // Get total count of ACTIVE tables
         const totalActiveTables = await ctx.table.repository.count({ 
-            where: { status: Status.ACTIVE } 
+            where: { status: Not(TableStatus.INACTIVE) } 
         });
 
         // Get count of distinct tables that have active/booked sessions

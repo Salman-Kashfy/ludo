@@ -9,6 +9,7 @@ import {isEmpty} from "lodash";
 import {PagingInterface} from "../../interfaces";
 import { accessRulesByRoleHierarchyUuid, accessRulesByRoleHierarchy } from '../../shared/lib/DataRoleUtils';
 import { In } from 'typeorm';
+import { TableStatus } from './types';
 
 export default class Table extends BaseModel {
     repository: any;
@@ -37,7 +38,7 @@ export default class Table extends BaseModel {
         if (params.status) {
             _query.andWhere('t.status = :status', { status: params.status });
         } else {
-            _query.andWhere('t.status = :status', { status: Status.ACTIVE });
+            _query.andWhere('t.status != :inactiveStatus', { inactiveStatus: TableStatus.INACTIVE });
         }
         
         if (!isEmpty(params.searchText)) {
