@@ -1,4 +1,4 @@
-import { Status } from "../entity/root/enums";
+import { TableStatus } from "../../schema/table/types";
 
 interface TableInput {
     regularCategoryId: number
@@ -14,7 +14,7 @@ export const tables = (input: TableInput) => [
         name: 'Table 1',
         categoryId: input.regularCategoryId,
         companyId: input.companyId,
-        status: Status.ACTIVE,
+        status: TableStatus.ACTIVE,
         sortNo: 1
     },
     {
@@ -22,7 +22,7 @@ export const tables = (input: TableInput) => [
         name: 'Table 2',
         categoryId: input.regularCategoryId,
         companyId: input.companyId,
-        status: Status.ACTIVE,
+        status: TableStatus.ACTIVE,
         sortNo: 2
     },
     {
@@ -30,7 +30,7 @@ export const tables = (input: TableInput) => [
         name: 'Table 3',
         categoryId: input.regularCategoryId,
         companyId: input.companyId,
-        status: Status.ACTIVE,
+        status: TableStatus.ACTIVE,
         sortNo: 3
     },
     {
@@ -38,7 +38,7 @@ export const tables = (input: TableInput) => [
         name: 'Table 4',
         categoryId: input.regularCategoryId,
         companyId: input.companyId,
-        status: Status.ACTIVE,
+        status: TableStatus.ACTIVE,
         sortNo: 4
     },
     {
@@ -46,7 +46,7 @@ export const tables = (input: TableInput) => [
         name: 'Table 5',
         categoryId: input.regularCategoryId,
         companyId: input.companyId,
-        status: Status.ACTIVE,
+        status: TableStatus.ACTIVE,
         sortNo: 5
     },
     {
@@ -54,7 +54,7 @@ export const tables = (input: TableInput) => [
         name: 'Table 6',
         categoryId: input.regularCategoryId,
         companyId: input.companyId,
-        status: Status.ACTIVE,
+        status: TableStatus.ACTIVE,
         sortNo: 6
     },
     {
@@ -62,7 +62,7 @@ export const tables = (input: TableInput) => [
         name: 'Table 7',
         categoryId: input.regularCategoryId,
         companyId: input.companyId,
-        status: Status.ACTIVE,
+        status: TableStatus.ACTIVE,
         sortNo: 7
     },
     {
@@ -70,7 +70,7 @@ export const tables = (input: TableInput) => [
         name: 'Table 8',
         categoryId: input.regularCategoryId,
         companyId: input.companyId,
-        status: Status.ACTIVE,
+        status: TableStatus.ACTIVE,
         sortNo: 8
     },
     {
@@ -78,7 +78,7 @@ export const tables = (input: TableInput) => [
         name: 'Table 9',
         categoryId: input.regularCategoryId,
         companyId: input.companyId,
-        status: Status.ACTIVE,
+        status: TableStatus.ACTIVE,
         sortNo: 9
     },
     {
@@ -86,7 +86,7 @@ export const tables = (input: TableInput) => [
         name: 'Table 10',
         categoryId: input.regularCategoryId,
         companyId: input.companyId,
-        status: Status.ACTIVE,
+        status: TableStatus.ACTIVE,
         sortNo: 10
     },
     
@@ -96,7 +96,7 @@ export const tables = (input: TableInput) => [
         name: 'Table 11',
         categoryId: input.specialCategoryId,
         companyId: input.companyId,
-        status: Status.ACTIVE,
+        status: TableStatus.ACTIVE,
         sortNo: 11
     },
     {
@@ -104,7 +104,7 @@ export const tables = (input: TableInput) => [
         name: 'Table 12',
         categoryId: input.specialCategoryId,
         companyId: input.companyId,
-        status: Status.ACTIVE,
+        status: TableStatus.ACTIVE,
         sortNo: 12
     },
     {
@@ -112,7 +112,7 @@ export const tables = (input: TableInput) => [
         name: 'Table 13',
         categoryId: input.specialCategoryId,
         companyId: input.companyId,
-        status: Status.ACTIVE,
+        status: TableStatus.ACTIVE,
         sortNo: 13
     },
     {
@@ -120,7 +120,7 @@ export const tables = (input: TableInput) => [
         name: 'Table 14',
         categoryId: input.specialCategoryId,
         companyId: input.companyId,
-        status: Status.ACTIVE,
+        status: TableStatus.ACTIVE,
         sortNo: 14
     },
     
@@ -130,7 +130,7 @@ export const tables = (input: TableInput) => [
         name: 'Table 15',
         categoryId: input.premiumCategoryId,
         companyId: input.companyId,
-        status: Status.ACTIVE,
+        status: TableStatus.ACTIVE,
         sortNo: 15
     },
     {
@@ -138,7 +138,7 @@ export const tables = (input: TableInput) => [
         name: 'Table 16',
         categoryId: input.premiumCategoryId,
         companyId: input.companyId,
-        status: Status.ACTIVE,
+        status: TableStatus.ACTIVE,
         sortNo: 16
     }
 ]

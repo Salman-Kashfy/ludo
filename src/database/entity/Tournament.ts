@@ -9,7 +9,7 @@ import {
     JoinColumn,
     Index,
 } from 'typeorm';
-import { Length, IsDateString, IsInt, Min, IsNumber } from 'class-validator';
+import { Length, IsDateString, IsInt, Min, IsNumber, Max } from 'class-validator';
 import { TournamentStatus } from '../../schema/tournament/types';
 import { User } from './User';
 import { Company } from './Company';
@@ -45,6 +45,16 @@ export class Tournament extends BaseEntity {
 
     @Column({ name: 'currency_name', default: 'PKR' })
     currencyName: string;  
+
+    @Column({ name: 'group_size', type: 'int', default: 4 })
+    @IsInt()
+    @Min(2)
+    @Max(4)
+    groupSize!: number;
+
+    @Column({ name: 'total_rounds', type: 'int' })
+    @IsInt()
+    totalRounds!: number;
 
     @Column({ name: 'player_limit', type: 'int' })
     @IsInt()

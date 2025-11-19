@@ -8,6 +8,7 @@ import {GlobalError} from "../root/enum";
 import {isEmpty} from "lodash";
 import { accessRulesByRoleHierarchy, accessRulesByRoleHierarchyUuid } from '../../shared/lib/DataRoleUtils';
 import { TableSessionStatus } from '../../database/entity/TableSession';
+import { TableStatus } from '../table/types';
 
 export default class Category extends BaseModel {
     repository: any;
@@ -64,8 +65,9 @@ export default class Category extends BaseModel {
 
     mainQuery() {
         return this.repository.createQueryBuilder('c')
-        .leftJoinAndSelect('c.tables', 't', 't.status = :activeStatus', { activeStatus: Status.ACTIVE })
+        .leftJoinAndSelect('c.tables', 't')
         .leftJoinAndSelect('c.categoryPrices', 'cp')
+        .where('t.status != :inactiveStatus', { inactiveStatus: TableStatus.INACTIVE })
     }
 
     async saveValidate(input: CategoryInput) {

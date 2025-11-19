@@ -11,6 +11,7 @@ import { In } from 'typeorm';
 import { PaymentStatus } from '../payment/types';
 import { accessRulesByRoleHierarchyUuid } from '../../shared/lib/DataRoleUtils';
 import moment from 'moment';
+import { TableStatus } from '../table/types';
 
 export default class TableSession extends BaseModel {
     repository: any;
@@ -141,41 +142,44 @@ export default class TableSession extends BaseModel {
         }
 
         const { categoryPrice } = data;
-      
+
         try {
-        const transaction = await this.connection.manager.transaction(async (transactionalEntityManager: any) => {
-            const session = transactionalEntityManager.create(this.repository.target, {
-                customerId: data.customer.id,
-                tableId: data.table.id,
+            const transaction = await this.connection.manager.transaction(async (transactionalEntityManager: any) => {
+                const session = transactionalEntityManager.create(this.repository.target, {
+                    customerId: data.customer.id,
+                    tableId: data.table.id,
                     status: TableSessionStatus.BOOKED,
                     unit: categoryPrice.unit,
                     duration: categoryPrice.duration,
                     freeMins: categoryPrice.freeMins
-            });
+                });
 
                 await transactionalEntityManager.save(session);
-                
+
                 const payment = await this.context.payment.createPayment(transactionalEntityManager, {
-                customerId: data.customer.id,
-                tableSessionId: session.id,
+                    customerId: data.customer.id,
+                    tableSessionId: session.id,
                     amount: categoryPrice.price,
-                method: input.paymentMethod.paymentScheme,
+                    method: input.paymentMethod.paymentScheme,
                     status: PaymentStatus.SUCCESS,
                 });
-        
+
                 if (!payment || !payment.status) {
                     throw new Error('Payment processing failed');
                 }
-        
+
+                data.table.status = TableStatus.BOOKED;
+                await transactionalEntityManager.save(data.table);
+
                 return session;
             });
 
-            if(transaction && transaction.error && transaction.error.length > 0) {
+            if (transaction && transaction.error && transaction.error.length > 0) {
                 console.log('transaction.error: ', transaction.error);
-            return this.formatErrors([GlobalError.EXCEPTION], transaction.error);
-        }
+                return this.formatErrors([GlobalError.EXCEPTION], transaction.error);
+            }
 
-        return this.successResponse(transaction);
+            return this.successResponse(transaction);
         } catch (error: any) {
             console.log('error: ', error);
             return this.formatErrors([GlobalError.INTERNAL_SERVER_ERROR], error.message);

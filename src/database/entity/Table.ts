@@ -3,7 +3,7 @@ import { Length } from 'class-validator';
 import { Category } from './Category';
 import { TableSession } from './TableSession';
 import { Company } from './Company';
-import { Status } from './root/enums';
+import { TableStatus } from '../../schema/table/types';
 
 @Entity({ name: 'tables' })
 export class Table extends BaseEntity {
@@ -30,10 +30,10 @@ export class Table extends BaseEntity {
 
     @Column({ 
         type: 'enum', 
-        enum: Status, 
-        default: Status.ACTIVE 
+        enum: TableStatus, 
+        default: TableStatus.ACTIVE 
     })
-    status!: Status;
+    status!: TableStatus;
 
     /**
      * Relations

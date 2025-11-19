@@ -15,3 +15,10 @@ export interface TableFilter {
     categoryId?: number
     status?: Status
 }
+
+export enum TableStatus {
+    ACTIVE = 'ACTIVE',
+    BOOKED = 'BOOKED',
+    OCCUPIED = 'OCCUPIED',
+    INACTIVE = 'INACTIVE',
+}
