@@ -1,7 +1,6 @@
 import BaseModel from '../baseModel';
 import { Tournament as TournamentEntity } from '../../database/entity/Tournament';
-import { Company } from '../../database/entity/Company';
-import { Status, Roles } from '../../database/entity/root/enums';
+import { Status } from '../../database/entity/root/enums';
 import { TournamentInput, TournamentFilter } from './types';
 import Context from '../context';
 import { GlobalError } from '../root/enum';
@@ -164,7 +163,9 @@ export default class Tournament extends BaseModel {
             tournament.entryFee = input.entryFee ?? 0;
             tournament.prizePool = input.prizePool ?? 0;
             tournament.currencyName = input.currencyName ?? 'PKR';
+            tournament.groupSize = input.groupSize;
             tournament.playerLimit = input.playerLimit;
+            tournament.totalRounds = Math.ceil(Math.log(tournament.playerLimit) / Math.log(tournament.groupSize));
             tournament.status = input.status;
             tournament.companyId = company.id;
             tournament.categoryId = category.id;
