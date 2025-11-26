@@ -6,8 +6,10 @@ type Tournament {
     entryFee: Float!
     prizePool: Float!
     currencyName: String!
+    groupSize: Int!
     playerLimit: Int!
     playerCount: Int!
+    totalRounds: Int!
     status: TournamentStatus!
     createdAt: String!
     updatedAt: String!
@@ -62,6 +64,7 @@ input SaveTournamentInput {
     entryFee: Float!
     prizePool: Float!
     currencyName: String
+    groupSize: Int!
     playerLimit: Int!
 }
 

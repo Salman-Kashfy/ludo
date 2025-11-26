@@ -17,6 +17,7 @@ export interface TournamentInput {
     entryFee?: number;
     prizePool?: number;
     currencyName?: string;
+    groupSize: number;
     playerLimit: number;
     status?: TournamentStatus;
 }
