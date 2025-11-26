@@ -1,7 +1,7 @@
 import BaseModel from '../baseModel';
 import { TableSession as TableSessionEntity, TableSessionStatus } from '../../database/entity/TableSession';
 import { InvoiceStatus } from '../../database/entity/Invoice';
-import { StartTableSessionInput, MarkCompletedInput, TableSessionFilter, RechargeTableSessionInput } from './types';
+import { StartTableSessionInput, MarkCompletedInput, TableSessionFilter, RechargeTableSessionInput, StopTableSessionInput } from './types';
 import Context from "../context";
 import { GlobalError } from "../root/enum";
 import { BookTableSessionInput } from './types';
@@ -362,10 +362,10 @@ export default class TableSession extends BaseModel {
         }
     }
 
-    async cancelSession(id: string) {
+    async stopSession(input: StopTableSessionInput) {
         try {
             const session = await this.repository.findOne({
-                where: { id },
+                where: { uuid: input.tableSessionUuid },
                 relations: ['customer', 'table']
             });
 

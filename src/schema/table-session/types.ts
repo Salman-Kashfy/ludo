@@ -27,6 +27,10 @@ export interface MarkCompletedInput {
     tableSessionUuid: string
 }
 
+export interface StopTableSessionInput {
+    tableSessionUuid: string
+}
+
 export interface TableSessionFilter {
     searchText?: string
     customerId?: number

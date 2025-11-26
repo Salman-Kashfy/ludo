@@ -32,7 +32,7 @@ extend type Mutation {
     startTableSession(input: StartTableSessionInput!): SaveTableSessionPayload @requireAuth @requirePermissions(permissions: ["table_session:upsert"])
     rechargeTableSession(input: RechargeTableSessionInput!): SaveTableSessionPayload @requireAuth @requirePermissions(permissions: ["table_session:upsert"])
     markCompleted(input: MarkCompletedInput!): SaveTableSessionPayload @requireAuth @requirePermissions(permissions: ["table_session:upsert"])
-    cancelTableSession(id: ID!): SaveTableSessionPayload @requireAuth @requirePermissions(permissions: ["table_session:upsert"])
+    stopTableSession(input: StopTableSessionInput!): SaveTableSessionPayload @requireAuth @requirePermissions(permissions: ["table_session:upsert"])
 }
 
 input TableSessionFilter {
@@ -77,6 +77,10 @@ input RechargeTableSessionInput {
 }
 
 input MarkCompletedInput {
+    tableSessionUuid: ID!
+}
+
+input StopTableSessionInput {
     tableSessionUuid: ID!
 }
 

@@ -33,8 +33,8 @@ export default {
         markCompleted(root: any, {input}: any, context: Context) {
             return context.tableSession.markCompleted(input);
         },
-        cancelTableSession(root: any, {id}: any, context: Context) {
-            return context.tableSession.cancelSession(id);
+        stopTableSession(root: any, {input}: any, context: Context) {
+            return context.tableSession.stopSession(input);
         },
     },
 };
