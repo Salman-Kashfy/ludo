@@ -18,7 +18,7 @@ export class TournamentPlayer extends BaseEntity {
 
     @Column({ name: 'table_id', type: 'int', nullable: true })
     @Index()
-    tableId!: number;
+    tableId?: number;
 
     @CreateDateColumn({
         type: 'timestamptz',
@@ -33,5 +33,5 @@ export class TournamentPlayer extends BaseEntity {
 
     @ManyToOne(() => Table, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
     @JoinColumn({ name: 'table_id' })
-    table!: Table;
+    table: Table;
 }

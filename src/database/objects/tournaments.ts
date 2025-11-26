@@ -17,6 +17,7 @@ export const tournaments = (input: TournamentInput) => [
         prizePool: 5000,
         currencyName: 'PKR',
         playerLimit: 16,
+        playerCount: 16,
         groupSize: 4,
         totalRounds: 2,
         status: TournamentStatus.UPCOMING,
