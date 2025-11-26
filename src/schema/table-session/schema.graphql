@@ -31,7 +31,7 @@ extend type Mutation {
     bookTableSession(input: BookTableSessionInput!): SaveTableSessionPayload @requireAuth @requirePermissions(permissions: ["table_session:upsert"])
     startTableSession(input: StartTableSessionInput!): SaveTableSessionPayload @requireAuth @requirePermissions(permissions: ["table_session:upsert"])
     rechargeTableSession(input: RechargeTableSessionInput!): SaveTableSessionPayload @requireAuth @requirePermissions(permissions: ["table_session:upsert"])
-    endTableSession(input: EndTableSessionInput!): SaveTableSessionPayload @requireAuth @requirePermissions(permissions: ["table_session:upsert"])
+    markCompleted(input: MarkCompletedInput!): SaveTableSessionPayload @requireAuth @requirePermissions(permissions: ["table_session:upsert"])
     cancelTableSession(id: ID!): SaveTableSessionPayload @requireAuth @requirePermissions(permissions: ["table_session:upsert"])
 }
 
@@ -76,8 +76,8 @@ input RechargeTableSessionInput {
     paymentMethod:PaymentMethodInput!
 }
 
-input EndTableSessionInput {
-    id: ID!
+input MarkCompletedInput {
+    tableSessionUuid: ID!
 }
 
 type SaveTableSessionPayload {

@@ -30,8 +30,8 @@ export default {
         rechargeTableSession(root: any, {input}:any, context:Context) {
             return context.tableSession.rechargeSession(input);
         },
-        endTableSession(root: any, {input}: any, context: Context) {
-            return context.tableSession.endSession(input);
+        markCompleted(root: any, {input}: any, context: Context) {
+            return context.tableSession.markCompleted(input);
         },
         cancelTableSession(root: any, {id}: any, context: Context) {
             return context.tableSession.cancelSession(id);

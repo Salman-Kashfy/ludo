@@ -1,7 +1,7 @@
 import BaseModel from '../baseModel';
 import { TableSession as TableSessionEntity, TableSessionStatus } from '../../database/entity/TableSession';
 import { InvoiceStatus } from '../../database/entity/Invoice';
-import { StartTableSessionInput, EndTableSessionInput, TableSessionFilter, RechargeTableSessionInput } from './types';
+import { StartTableSessionInput, MarkCompletedInput, TableSessionFilter, RechargeTableSessionInput } from './types';
 import Context from "../context";
 import { GlobalError } from "../root/enum";
 import { BookTableSessionInput } from './types';
@@ -9,7 +9,7 @@ import { isEmpty, result } from "lodash";
 import { PagingInterface } from "../../interfaces";
 import { In } from 'typeorm';
 import { PaymentStatus } from '../payment/types';
-import { accessRulesByRoleHierarchyUuid } from '../../shared/lib/DataRoleUtils';
+import { accessRulesByRoleHierarchyUuid, accessRulesByRoleHierarchy } from '../../shared/lib/DataRoleUtils';
 import moment from 'moment';
 import { TableStatus } from '../table/types';
 
@@ -319,53 +319,34 @@ export default class TableSession extends BaseModel {
         }
     }
 
-    async endSession(input: EndTableSessionInput) {
+    async markCompleted(input: MarkCompletedInput) {
         try {
+            // Find table session with customer and table relations
             const session = await this.repository.findOne({
-                where: { id: input.id },
+                where: { uuid: input.tableSessionUuid },
                 relations: ['customer', 'table']
             });
 
             if (!session) {
-                return this.formatErrors(GlobalError.RECORD_NOT_FOUND, 'Table session not found');
+                return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Table session not found');
+            }
+
+            // Verify company access using role hierarchy (using customer's companyId from the session)
+            if (!(await accessRulesByRoleHierarchy(this.context, { companyId: session.customer.companyId }))) {
+                return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
             }
 
             if (session.status !== TableSessionStatus.ACTIVE) {
-                return this.formatErrors(GlobalError.INVALID_INPUT, 'Session is not active');
+                return this.formatErrors([GlobalError.INVALID_INPUT], 'Session is not active');
             }
-
-            const endTime = new Date();
-            const startTime = new Date(session.startTime);
-            const durationInHours = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
             
-            // Get table category to calculate rate
-            const table = await this.context.table.repository.findOne({
-                where: { id: session.tableId },
-                relations: ['category']
-            });
-
-            const hourlyRate = table.category.hourlyRate;
-            const totalAmount = Math.ceil(durationInHours * hourlyRate); // Round up to next hour
-
-            // Execute all operations within a transaction
             const result = await this.connection.manager.transaction(async (transactionalEntityManager: any) => {
-                // Update session
-                session.totalAmount = totalAmount;
+                session.endTime = new Date();
                 session.status = TableSessionStatus.COMPLETED;
                 const updatedSession = await transactionalEntityManager.save(session);
 
-                // Generate invoice for the completed session
-                const invoice = transactionalEntityManager.create(this.context.invoice.repository.target, {
-                    customerId: session.customerId,
-                    tableSessionId: session.id,
-                    totalAmount: totalAmount,
-                    paidAmount: 0,
-                    remainingAmount: totalAmount,
-                    status: InvoiceStatus.UNPAID,
-                    notes: `Table session from ${startTime.toLocaleString()} to ${endTime.toLocaleString()}`
-                });
-
-                await transactionalEntityManager.save(invoice);
+                session.table.status = TableStatus.ACTIVE;
+                await transactionalEntityManager.save(session.table);
 
                 return updatedSession;
             });
@@ -377,7 +358,7 @@ export default class TableSession extends BaseModel {
 
             return this.successResponse(result);
         } catch (error: any) {
-            return this.formatErrors(GlobalError.INTERNAL_SERVER_ERROR, error.message);
+            return this.formatErrors([GlobalError.INTERNAL_SERVER_ERROR], error.message);
         }
     }
 

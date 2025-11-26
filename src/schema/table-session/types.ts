@@ -23,8 +23,8 @@ export interface RechargeTableSessionInput {
     paymentMethod: PaymentMethodInput;
 }
 
-export interface EndTableSessionInput {
-    id: string
+export interface MarkCompletedInput {
+    tableSessionUuid: string
 }
 
 export interface TableSessionFilter {
