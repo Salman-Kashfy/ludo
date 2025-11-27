@@ -17,6 +17,7 @@ import TableSessionModel from './table-session/model';
 import InvoiceModel from './invoice/model';
 import PaymentModel from './payment/model';
 import CompanyModel from './company/model';
+import TournamentRoundModel from './tournament-round/model';
 
 export default class Context {
     static instance:Context;
@@ -29,6 +30,7 @@ export default class Context {
     tournament: TournamentModel;
     tournamentPlayer: TournamentPlayerModel;
     table: TableModel;
+    tournamentRound: TournamentRoundModel;
     shift: ShiftModel;
     customer: CustomerModel;
     tableSession: TableSessionModel;
@@ -53,6 +55,7 @@ export default class Context {
         this.tournament = new TournamentModel(connection, this);
         this.tournamentPlayer = new TournamentPlayerModel(connection, this);
         this.table = new TableModel(connection, this);
+        this.tournamentRound = new TournamentRoundModel(connection, this);
         this.shift = new ShiftModel(connection, this);
         this.customer = new CustomerModel(connection, this);
         this.tableSession = new TableSessionModel(connection, this);

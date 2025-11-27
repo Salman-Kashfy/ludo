@@ -20,6 +20,12 @@ export class TournamentPlayer extends BaseEntity {
     @Index()
     tableId?: number;
 
+    @Column({ name: 'current_round', type: 'int', default: 0 })
+    currentRound!: number;
+
+    @Column({ name: 'is_winner', type: 'boolean', default: false })
+    isWinner!: boolean;
+
     @CreateDateColumn({
         type: 'timestamptz',
         default: () => 'CURRENT_TIMESTAMP(6)',
@@ -33,5 +39,5 @@ export class TournamentPlayer extends BaseEntity {
 
     @ManyToOne(() => Table, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
     @JoinColumn({ name: 'table_id' })
-    table: Table;
+    table?: Table;
 }
