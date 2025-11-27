@@ -1,0 +1,93 @@
+type TournamentRound {
+    id: Int!
+    tournamentId: Int!
+    customerId: Int!
+    tableId: Int
+    round: Int!
+    isWinner: Boolean
+    createdAt: Datetime
+
+    # Relations
+    customer: Customer
+    table: Table
+}
+
+type TournamentRoundAssignment {
+    round: Int!
+    tableId: Int!
+    table: Table
+    playerIds: [Int!]!
+    entries: [TournamentRound!]!
+}
+
+#------------------------
+# Queries
+#------------------------
+extend type Query {
+    tournamentRounds(params: TournamentRoundFilter!): TournamentRoundsPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
+}
+
+#------------------------
+# Mutations
+#------------------------
+extend type Mutation {
+    startTournamentRound(input: StartTournamentRoundInput!): TournamentRoundTransitionPayload! @requireAuth @requirePermissions(permissions: ["tournament:create"])
+    completeTournamentRound(input: CompleteTournamentRoundInput!): CompleteTournamentRoundPayload! @requireAuth @requirePermissions(permissions: ["tournament:create"])
+    startNextTournamentRound(input: StartNextTournamentRoundInput!): TournamentRoundTransitionPayload! @requireAuth @requirePermissions(permissions: ["tournament:create"])
+}
+
+input TournamentRoundFilter {
+    tournamentUuid: ID!
+    round: Int
+    tableId: Int
+    customerId: Int
+    winnersOnly: Boolean
+    paging: PaginatorInput
+}
+
+input StartTournamentRoundInput {
+    tournamentUuid: ID!
+    randomize: Boolean
+}
+
+input CompleteTournamentRoundInput {
+    tournamentUuid: ID!
+    round: Int
+    winnerCustomerIds: [Int!]!
+}
+
+input StartNextTournamentRoundInput {
+    tournamentUuid: ID!
+    randomize: Boolean
+}
+
+type TournamentRoundPayload {
+    status: Boolean
+    data: TournamentRound
+    errors: GlobalError
+    errorMessage: String
+}
+
+type TournamentRoundsPayload {
+    status: Boolean
+    list: [TournamentRound]
+    paging: PaginatorOutputUpdated
+    errors: GlobalError
+    errorMessage: String
+}
+
+type TournamentRoundTransitionPayload {
+    status: Boolean
+    tournament: Tournament
+    assignments: [TournamentRoundAssignment]
+    errors: GlobalError
+    errorMessage: String
+}
+
+type CompleteTournamentRoundPayload {
+    status: Boolean
+    tournament: Tournament
+    winners: [TournamentRound]
+    errors: GlobalError
+    errorMessage: String
+}
