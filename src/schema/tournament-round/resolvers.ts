@@ -7,8 +7,8 @@ export default {
         },
     },
     Mutation: {
-        startTournamentRound(_: any, { input }: any, context: Context) {
-            return context.tournamentRound.startTournamentRound(input);
+        startTournament(_: any, { input }: any, context: Context) {
+            return context.tournamentRound.startTournament(input);
         },
         completeTournamentRound(_: any, { input }: any, context: Context) {
             return context.tournamentRound.completeTournamentRound(input);
