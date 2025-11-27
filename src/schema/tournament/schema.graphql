@@ -11,6 +11,9 @@ type Tournament {
     playerCount: Int!
     totalRounds: Int!
     status: TournamentStatus!
+    currentRound: Int
+    startedAt: Datetime
+    completedAt: Datetime
     createdAt: String!
     updatedAt: String!
 

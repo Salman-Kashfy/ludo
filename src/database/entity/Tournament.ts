@@ -69,6 +69,9 @@ export class Tournament extends BaseEntity {
     @Column({ type: 'enum', enum: TournamentStatus, default: TournamentStatus.UPCOMING })
     status?: TournamentStatus;
 
+    @Column({ name: 'current_round', type: 'int', default: 0 })
+    currentRound!: number;
+
     @Column({ name: 'company_id' })
     @Index()
     companyId!: number;
@@ -97,6 +100,12 @@ export class Tournament extends BaseEntity {
         name: 'updated_at',
     })
     updatedAt!: Date;
+
+    @Column({ name: 'started_at', type: 'timestamptz', nullable: true })
+    startedAt?: Date;
+
+    @Column({ name: 'completed_at', type: 'timestamptz', nullable: true })
+    completedAt?: Date;
 
     /**
      * Relations
