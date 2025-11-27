@@ -1,0 +1,34 @@
+type TournamentRound {
+    tournamentId: Int!
+    customerId: Int!
+    tableId: Int
+    round: Int!
+    isWinner: Boolean
+
+    #Relations
+    customer: Customer
+    table: Table
+}
+
+#------------------------
+# Queries
+#------------------------
+extend type Query {
+    tournamentRounds(input: TournamentRoundInput!): TournamentRoundPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
+}
+
+#------------------------
+# Mutations
+#------------------------
+extend type Mutation {
+    assignTables(input: TournamentRoundInput!): SaveTournamentPlayerPayload! @requireAuth @requirePermissions(permissions: ["tournament:create"])
+}
+
+input TournamentRoundInput {
+    tournamentId: Int
+    round: Int
+}
+
+type TournamentRoundPayload {
+    
+}

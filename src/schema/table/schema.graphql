@@ -2,7 +2,7 @@ type Table {
     uuid: ID!
     name: String!
     categoryUuid: ID!
-    status: Status!
+    status: TableStatus!
     sortNo: Int
     category: Category!
     tableSessions: [TableSession]
@@ -71,4 +71,11 @@ type DeleteTablePayload {
     errors: GlobalError
     status: Boolean
     errorMessage: String
+}
+
+enum TableStatus {
+    ACTIVE
+    BOOKED
+    OCCUPIED
+    INACTIVE
 }
