@@ -16,7 +16,7 @@ type TournamentRoundFilterInput = {
     paging?: any;
 };
 
-type StartTournamentRoundInput = {
+type StartTournamentInput = {
     tournamentUuid: string;
     randomize?: boolean;
 };
@@ -117,25 +117,14 @@ export default class TournamentRoundModel extends BaseModel {
         };
     }
 
-    async startTournamentRound(input: StartTournamentRoundInput) {
+    async startTournament(input: StartTournamentInput) {
         const { tournamentUuid, randomize } = input;
-        const tournament = await this.resolveTournament(tournamentUuid);
-        if (!tournament) {
-            return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Tournament not found');
+        const validationResult = await this.validateTournamentStart(tournamentUuid);
+        if ('status' in validationResult && validationResult.status === false) {
+            return validationResult;
         }
 
-        if (tournament.status !== TournamentStatus.UPCOMING) {
-            return this.formatErrors([GlobalError.INVALID_INPUT], 'Tournament already started');
-        }
-
-        if (!this.hasStartTimeArrived(tournament)) {
-            return this.formatErrors([GlobalError.INVALID_INPUT], 'Tournament start time not reached yet');
-        }
-
-        const hasAccess = await accessRulesByRoleHierarchy(this.context, { companyId: tournament.companyId });
-        if (!hasAccess) {
-            return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
-        }
+        const { tournament } = validationResult as { tournament: Tournament };
 
         const players = await this.fetchTournamentPlayers(tournament.id);
         if (!players.length) {
@@ -145,7 +134,7 @@ export default class TournamentRoundModel extends BaseModel {
         players.forEach((player) => {
             player.currentRound = 0;
             player.isWinner = false;
-            player.tableId = null as unknown as number;
+            player.tableId = undefined;
             player.table = undefined;
         });
         await this.repository.save(players);
@@ -160,7 +149,7 @@ export default class TournamentRoundModel extends BaseModel {
             return assignmentResult;
         }
 
-        tournament.status = TournamentStatus.RUNNING;
+        tournament.status = TournamentStatus.ACTIVE;
         tournament.currentRound = 1;
         tournament.startedAt = new Date();
         await this.context.tournament.repository.save(tournament);
@@ -172,6 +161,28 @@ export default class TournamentRoundModel extends BaseModel {
             errors: null,
             errorMessage: null,
         };
+    }
+
+    private async validateTournamentStart(tournamentUuid: string) {
+        const tournament = await this.resolveTournament(tournamentUuid);
+        if (!tournament) {
+            return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Tournament not found');
+        }
+
+        if (tournament.status !== TournamentStatus.BOOKED) {
+            return this.formatErrors([GlobalError.INVALID_INPUT], 'Tournament already started');
+        }
+
+        if (!this.hasStartTimeArrived(tournament)) {
+            return this.formatErrors([GlobalError.INVALID_INPUT], 'Tournament start time not reached yet');
+        }
+
+        const hasAccess = await accessRulesByRoleHierarchy(this.context, { companyId: tournament.companyId });
+        if (!hasAccess) {
+            return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
+        }
+
+        return { tournament };
     }
 
     async completeTournamentRound(input: CompleteTournamentRoundInput) {

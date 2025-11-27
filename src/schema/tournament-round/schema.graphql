@@ -31,7 +31,7 @@ extend type Query {
 # Mutations
 #------------------------
 extend type Mutation {
-    startTournamentRound(input: StartTournamentRoundInput!): TournamentRoundTransitionPayload! @requireAuth @requirePermissions(permissions: ["tournament:create"])
+    startTournament(input: StartTournamentInput!): TournamentRoundTransitionPayload! @requireAuth @requirePermissions(permissions: ["tournament:create"])
     completeTournamentRound(input: CompleteTournamentRoundInput!): CompleteTournamentRoundPayload! @requireAuth @requirePermissions(permissions: ["tournament:create"])
     startNextTournamentRound(input: StartNextTournamentRoundInput!): TournamentRoundTransitionPayload! @requireAuth @requirePermissions(permissions: ["tournament:create"])
 }
@@ -45,7 +45,7 @@ input TournamentRoundFilter {
     paging: PaginatorInput
 }
 
-input StartTournamentRoundInput {
+input StartTournamentInput {
     tournamentUuid: ID!
     randomize: Boolean
 }
