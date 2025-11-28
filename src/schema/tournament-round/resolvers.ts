@@ -9,7 +9,7 @@ export default {
             return context.tournamentRound.getAllRounds(tournamentUuid);
         },
         tournamentRound(_: any, { tournamentUuid, round }: any, context: Context) {
-            return context.tournamentRound.tournamentRound(tournamentUuid, round);
+            return context.tournamentRound.show(tournamentUuid, round);
         },
     },
     Mutation: {

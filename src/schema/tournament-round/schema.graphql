@@ -67,7 +67,7 @@ input StartTournamentInput {
 input CompleteTournamentRoundInput {
     tournamentUuid: ID!
     round: Int
-    winnerCustomerIds: [Int!]!
+    winnerCustomerUuid: [String!]!
 }
 
 input StartNextTournamentRoundInput {
@@ -116,8 +116,7 @@ type TournamentRoundWinner {
 
 type CompleteTournamentRoundPayload {
     status: Boolean
-    tournament: Tournament
-    winners: [TournamentRoundWinner!]!
+    data: Tournament
     errors: [GlobalError]
     errorMessage: String
 }

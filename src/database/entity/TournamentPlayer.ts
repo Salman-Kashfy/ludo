@@ -1,6 +1,7 @@
 import { BaseEntity, Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Customer } from './Customer';
 import { Table } from './Table';
+import { Tournament } from './Tournament';
 
 @Entity({ name: 'tournament_players' })
 @Index(['tournamentId', 'customerId'], { unique: true })
@@ -16,16 +17,6 @@ export class TournamentPlayer extends BaseEntity {
     @Index()
     customerId!: number;
 
-    @Column({ name: 'table_id', type: 'int', nullable: true })
-    @Index()
-    tableId?: number;
-
-    @Column({ name: 'current_round', type: 'int', default: 0 })
-    currentRound!: number;
-
-    @Column({ name: 'is_winner', type: 'boolean', default: false })
-    isWinner!: boolean;
-
     @CreateDateColumn({
         type: 'timestamptz',
         default: () => 'CURRENT_TIMESTAMP(6)',
@@ -37,7 +28,7 @@ export class TournamentPlayer extends BaseEntity {
     @JoinColumn({ name: 'customer_id' })
     customer!: Customer;
 
-    @ManyToOne(() => Table, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
-    @JoinColumn({ name: 'table_id' })
-    table?: Table;
+    @ManyToOne(() => Tournament, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+    @JoinColumn({ name: 'tournament_id' })
+    tournament!: Tournament;
 }
