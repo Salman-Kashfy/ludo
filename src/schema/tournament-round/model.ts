@@ -296,11 +296,11 @@ export default class TournamentRoundModel extends BaseModel {
         }
 
         const groupSize = tournament.groupSize || 4;
-        const requiredTables = Math.ceil(players.length / groupSize);
-        if (tables.length < requiredTables) {
+        const expectedTables = Math.ceil(((tournament.playerLimit || players.length) || 0) / groupSize) || 1;
+        if (tables.length < expectedTables) {
             return this.formatErrors(
                 [GlobalError.VALIDATION_ERROR],
-                `Not enough tables. Required ${requiredTables}, available ${tables.length}`,
+                `Not enough tables. Required ${expectedTables}, available ${tables.length}`,
             );
         }
 
@@ -309,7 +309,7 @@ export default class TournamentRoundModel extends BaseModel {
             this.shuffle(shuffled);
         }
 
-        const activeTables = tables.slice(0, requiredTables);
+        const activeTables = tables.slice(0, expectedTables);
         const updatedPlayers: TournamentPlayer[] = [];
         const assignments: AssignmentResult[] = [];
 
