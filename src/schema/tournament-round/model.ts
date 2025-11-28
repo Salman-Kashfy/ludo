@@ -312,9 +312,7 @@ export default class TournamentRoundModel extends BaseModel {
     
                 await transactionalEntityManager.save(tournamentRound);
                 
-                // Get TournamentRoundPlayer repository from transactional entity manager
-                const roundPlayerRepository = transactionalEntityManager.getRepository(TournamentRoundPlayerEntity);
-                await roundPlayerRepository
+                await this.context.tournamentRoundPlayer.repository
                     .createQueryBuilder()
                     .update(TournamentRoundPlayerEntity)
                     .set({ isWinner: true })
@@ -328,16 +326,7 @@ export default class TournamentRoundModel extends BaseModel {
             if (transaction && transaction.error && transaction.error.length > 0) {
                 console.log(transaction.error);
                 return this.formatErrors(GlobalError.INTERNAL_SERVER_ERROR, transaction.error);
-            } 
-
-            // const tournamentPlayer = await this.context.tournamentPlayer.repository.find({
-            //     where: { tournamentId: tournament.id, round: tournament.currentRound },
-            //     relations: ['customer', 'table'],
-            // });
-            // const winners = tournamentPlayer.map((entry: TournamentPlayer) => this.toRoundView(entry));
-            // if (!winners.length) {
-            //     return this.formatErrors([GlobalError.INVALID_INPUT], 'No matching winners found for provided customers');
-            // }
+            }
 
             return this.successResponse({ tournament })
         } catch (error: any) {
