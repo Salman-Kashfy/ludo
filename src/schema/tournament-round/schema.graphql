@@ -85,10 +85,15 @@ type TournamentRoundsPayload {
 }
 
 type TournamentRoundTransitionPayload {
-    data: Tournament
+    data: TournamentRoundTransition
     errors: [GlobalError]
     status: Boolean
     errorMessage: String
+}
+
+type TournamentRoundTransition {
+    tournament: Tournament
+    round: TournamentRound
 }
 
 type CompleteTournamentRoundPayload {

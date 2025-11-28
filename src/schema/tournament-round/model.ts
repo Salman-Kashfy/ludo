@@ -5,8 +5,9 @@ import { accessRulesByRoleHierarchy } from '../../shared/lib/DataRoleUtils';
 import { Tournament } from '../../database/entity/Tournament';
 import { Table } from '../../database/entity/Table';
 import { TournamentPlayer } from '../../database/entity/TournamentPlayer';
+import { TournamentRound as TournamentRoundEntity } from '../../database/entity/TournamentRound';
 import { TournamentStatus } from '../tournament/types';
-import { TournamentRoundFilterInput } from './types';
+import { TournamentRoundFilterInput, TournamentRoundStatus } from './types';
 import { TableStatus } from '../table/types';
 
 type StartTournamentInput = {
@@ -48,6 +49,7 @@ type AssignmentResult = {
 type AssignmentGenerationResult =
     | {
           assignments: AssignmentResult[];
+          round: TournamentRoundEntity;
       }
     | ReturnType<TournamentRoundModel['formatErrors']>;
 
@@ -130,7 +132,7 @@ export default class TournamentRoundModel extends BaseModel {
         tournament.startedAt = new Date();
         await this.context.tournament.repository.save(tournament);
 
-        return this.successResponse(tournament)
+        return this.successResponse({ tournament, round: assignmentResult.round })
     }
 
     private async startTournamentValidate(tournamentUuid: string) {
@@ -272,7 +274,7 @@ export default class TournamentRoundModel extends BaseModel {
             return this.formatErrors([GlobalError.INVALID_INPUT], 'No players available for this round');
         }
 
-        return this.successResponse(tournament)
+        return this.successResponse({ tournament, round: assignmentResult.round })
     }
 
     private async generateRoundAssignments({
@@ -344,7 +346,28 @@ export default class TournamentRoundModel extends BaseModel {
 
         await this.repository.save(updatedPlayers);
 
-        return { assignments };
+        const roundRepository = this.context.connection.getRepository(TournamentRoundEntity);
+        let roundEntity = await roundRepository.findOne({
+            where: { tournamentId: tournament.id, round }
+        });
+        if (!roundEntity) {
+            roundEntity = roundRepository.create({
+                tournamentId: tournament.id,
+                round,
+                playerCount: updatedPlayers.length,
+                tableCount: activeTables.length,
+                status: TournamentRoundStatus.ACTIVE,
+                startedAt: new Date()
+            });
+        } else {
+            roundEntity.playerCount = updatedPlayers.length;
+            roundEntity.tableCount = activeTables.length;
+            roundEntity.status = TournamentRoundStatus.ACTIVE;
+            roundEntity.startedAt = new Date();
+        }
+        await roundRepository.save(roundEntity);
+
+        return { assignments, round: roundEntity };
     }
 
     private toRoundView(player: TournamentPlayer): RoundView {
