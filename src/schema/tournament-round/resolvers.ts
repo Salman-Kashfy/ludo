@@ -8,8 +8,8 @@ export default {
         tournamentAllRounds(_: any, { tournamentUuid }: any, context: Context) {
             return context.tournamentRound.getAllRounds(tournamentUuid);
         },
-        getTournamentRound(_: any, { tournamentUuid, round }: any, context: Context) {
-            return context.tournamentRound.getTournamentRound(tournamentUuid, round);
+        tournamentRound(_: any, { tournamentUuid, round }: any, context: Context) {
+            return context.tournamentRound.tournamentRound(tournamentUuid, round);
         },
     },
     Mutation: {

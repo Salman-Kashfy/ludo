@@ -42,7 +42,7 @@ type TournamentRoundAssignment {
 extend type Query {
     tournamentRounds(params: TournamentRoundFilter!): TournamentRoundsPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
     tournamentAllRounds(tournamentUuid: ID!): TournamentRoundsPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
-    getTournamentRound(tournamentUuid: ID!, round: Int!): GetTournamentRoundPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
+    tournamentRound(tournamentUuid: ID!, round: Int!): GetTournamentRoundPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
 }
 
 #------------------------

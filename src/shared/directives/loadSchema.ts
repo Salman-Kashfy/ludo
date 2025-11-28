@@ -27,24 +27,7 @@ export function registerDirectives(schema: GraphQLSchema): GraphQLSchema {
   });
   return schema;
 }
-function loadGraphqlSchema() {
-  const searchGlobs = [
-    join(process.cwd(), 'src/schema/**/*.graphql'),
-    join(__dirname, './../../schema/**/*.graphql'),
-  ];
-
-  let lastError: unknown;
-  for (const pattern of searchGlobs) {
-    try {
-      return loadSchemaSync(pattern, { loaders: [new GraphQLFileLoader()] });
-    } catch (error) {
-      lastError = error;
-    }
-  }
-  throw lastError;
-}
-
-const schema = loadGraphqlSchema();
+const schema = loadSchemaSync(join(__dirname, './../../schema/**/*.graphql'), { loaders: [new GraphQLFileLoader()] });
 
 let schemaWithResolvers = addResolversToSchema({
   schema,

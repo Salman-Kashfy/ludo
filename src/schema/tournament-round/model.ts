@@ -136,7 +136,7 @@ export default class TournamentRoundModel extends BaseModel {
         return { list: tournamentRounds }
     }
 
-    async getTournamentRound(tournamentUuid: string, round: number) {
+    async tournamentRound(tournamentUuid: string, round: number) {
         try {
             const tournament = await this.context.tournament.repository.findOne({
                 where: { uuid: tournamentUuid },

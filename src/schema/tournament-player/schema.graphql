@@ -12,9 +12,7 @@ type TournamentPlayer {
 # Queries
 #------------------------
 extend type Query {
-    tournamentPlayers(tournamentUuid: ID!): TournamentPlayersPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
     playerRegistrationBill(params: PlayerRegistrationBillInput!): PlayerRegistrationBillPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
-    tournamentUnregisteredCustomers(params: TournamentUnregisteredCustomersInput!): TournamentUnregisteredCustomersPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
 }
 
 #------------------------
@@ -49,13 +47,6 @@ type SaveTournamentPlayerPayload {
     errorMessage: String
 }
 
-type TournamentUnregisteredCustomersPayload {
-    status: Boolean
-    list: [Customer]
-    paging: PaginatorOutputUpdated
-    errors: [GlobalError]
-    errorMessage: String
-}
 
 input PlayerRegistrationBillInput {
     customerUuid: ID!

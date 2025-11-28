@@ -1,5 +1,4 @@
 type Table {
-    id: Int!
     uuid: ID!
     name: String!
     categoryUuid: ID!
