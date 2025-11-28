@@ -5,150 +5,215 @@ import { accessRulesByRoleHierarchy } from '../../shared/lib/DataRoleUtils';
 import { Tournament } from '../../database/entity/Tournament';
 import { Table } from '../../database/entity/Table';
 import { TournamentPlayer } from '../../database/entity/TournamentPlayer';
+import { TournamentRound as TournamentRoundEntity } from '../../database/entity/TournamentRound';
+import { TournamentRoundPlayer as TournamentRoundPlayerEntity } from '../../database/entity/TournamentRoundPlayer';
 import { TournamentStatus } from '../tournament/types';
-
-type TournamentRoundFilterInput = {
-    tournamentUuid: string;
-    round?: number;
-    tableId?: number;
-    customerId?: number;
-    winnersOnly?: boolean;
-    paging?: any;
-};
-
-type StartTournamentRoundInput = {
-    tournamentUuid: string;
-    randomize?: boolean;
-};
-
-type CompleteTournamentRoundInput = {
-    tournamentUuid: string;
-    round?: number;
-    winnerCustomerIds: number[];
-};
-
-type StartNextTournamentRoundInput = {
-    tournamentUuid: string;
-    randomize?: boolean;
-};
-
-type RoundView = {
-    id: number;
-    tournamentId: number;
-    customerId: number;
-    tableId?: number | null;
-    round: number;
-    isWinner: boolean;
-    createdAt: Date;
-    customer?: any;
-    table?: Table | null;
-};
-
-type AssignmentResult = {
-    round: number;
-    tableId: number;
-    table: Table;
-    playerIds: number[];
-    entries: RoundView[];
-};
-
-type AssignmentGenerationResult =
-    | {
-          assignments: AssignmentResult[];
-      }
-    | ReturnType<TournamentRoundModel['formatErrors']>;
+import {
+    AssignmentGenerationResult,
+    AssignmentResult,
+    CompleteTournamentRoundInput,
+    GenerateRoundAssignmentsParams,
+    RoundView,
+    StartNextTournamentRoundInput,
+    StartTournamentInput,
+    TournamentRoundFilterInput,
+    TournamentRoundStatus,
+} from './types';
+import { TableStatus } from '../table/types';
+import { In } from 'typeorm';
 
 export default class TournamentRoundModel extends BaseModel {
+    repository: any;
+    connection: any;
+    loaders: any;
+
     constructor(connection: any, context: Context) {
-        super(connection, connection.getRepository(TournamentPlayer), context);
+        super(connection, connection.getRepository(TournamentRoundEntity), context);
     }
 
-    private async resolveTournament(tournamentUuid: string): Promise<Tournament | null> {
-        if (!tournamentUuid) {
-            return null;
+    async getAllRounds(tournamentUuid: string) {
+        try {
+            const tournament = await this.context.tournament.repository.findOne({
+                where: { uuid: tournamentUuid },
+                relations: ['company'],
+            });
+
+            if (!tournament) {
+                return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Tournament not found');
+            }
+
+            if (!(await accessRulesByRoleHierarchy(this.context, { companyId: tournament.companyId }))) {
+                return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
+            }
+
+            const rounds = await this.repository.find({
+                where: { tournamentId: tournament.id },
+                order: { round: 'ASC' },
+                relations: ['tournament'],
+            });
+
+            return {
+                status: true,
+                list: rounds,
+                errors: null,
+                errorMessage: null,
+            };
+        } catch (error: any) {
+            return this.formatErrors([GlobalError.INTERNAL_SERVER_ERROR], error.message);
         }
-        return this.context.tournament.repository.findOne({
-            where: { uuid: tournamentUuid },
-            relations: ['company'],
+    }
+
+    async index(params:TournamentRoundFilterInput) {
+        const { tournamentUuid, round } = params;
+        const tournament = await this.context.tournament.repository.findOne({
+            where: { uuid: tournamentUuid }
         });
-    }
 
-    async list(params: TournamentRoundFilterInput) {
-        const { tournamentUuid, round, tableId, customerId, winnersOnly, paging } = params;
-        const tournament = await this.resolveTournament(tournamentUuid);
         if (!tournament) {
             return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Tournament not found');
         }
 
-        const hasAccess = await accessRulesByRoleHierarchy(this.context, { companyId: tournament.companyId });
-        if (!hasAccess) {
+        if (!(await accessRulesByRoleHierarchy(this.context, { companyId: tournament.companyId }))) {
             return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
         }
 
-        const query = this.repository
-            .createQueryBuilder('players')
-            .where('players.tournament_id = :tournamentId', { tournamentId: tournament.id })
-            .leftJoinAndSelect('players.customer', 'customer')
-            .leftJoinAndSelect('players.table', 'table')
-            .orderBy('players.current_round', 'ASC')
-            .addOrderBy('players.table_id', 'ASC')
-            .addOrderBy('players.id', 'ASC');
+        const rows = await this.context.tournamentRoundPlayer.repository.find({
+            relations: ['customer', 'table'],
+            where: { tournamentId: tournament.id, round }
+        });
 
-        if (typeof round === 'number') {
-            query.andWhere('players.current_round = :round', { round });
-        }
-        if (typeof tableId === 'number') {
-            query.andWhere('players.table_id = :tableId', { tableId });
-        }
-        if (typeof customerId === 'number') {
-            query.andWhere('players.customer_id = :customerId', { customerId });
-        }
-        if (winnersOnly) {
-            query.andWhere('players.is_winner = true');
+        let tournamentRounds:any = []
+        if (rows.length) {
+            const obj:any = {}
+            for (const row of rows) {
+                if (!obj[row.tableId]) {
+                    obj[row.tableId] = {
+                        tableId: row.tableId,
+                        table: row.table,
+                        customers: []
+                    }
+                }
+                obj[row.tableId].customers.push({
+                    uuid: row.customer.uuid,
+                    phone: row.customer.phone,
+                    isWinner: row.isWinner
+                });
+            }
+            tournamentRounds.push(obj);
         }
 
-        const { list, paging: pagingMeta } = await this.paginator(query, paging);
-        return {
-            status: true,
-            list: list.map((player: TournamentPlayer) => this.toRoundView(player)),
-            paging: pagingMeta,
-            errors: null,
-            errorMessage: null,
-        };
+        return { list: tournamentRounds }
     }
 
-    async startTournamentRound(input: StartTournamentRoundInput) {
+    async show(tournamentUuid: string, round: number) {
+        try {
+            const tournament = await this.context.tournament.repository.findOne({
+                where: { uuid: tournamentUuid },
+                relations: ['company'],
+            });
+
+            if (!tournament) {
+                return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Tournament not found');
+            }
+
+            if (!(await accessRulesByRoleHierarchy(this.context, { companyId: tournament.companyId }))) {
+                return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
+            }
+
+            const tournamentRound = await this.repository.findOne({
+                where: { tournamentId: tournament.id, round },
+                relations: ['tournament'],
+            });
+
+            if (!tournamentRound) {
+                return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Tournament round not found');
+            }
+
+            let roundPlayers = await this.context.tournamentRoundPlayer.repository.find({
+                where: { tournamentRoundId: tournamentRound.id },
+                relations: ['customer', 'table', 'tournamentRound'],
+                order: { tableId: 'ASC' },
+            });
+
+            if (!roundPlayers.length) {
+                const tournamentPlayers = await this.context.tournamentPlayer.repository.find({
+                    where: { 
+                        tournamentId: tournament.id, 
+                        currentRound: round 
+                    },
+                    relations: ['customer'],
+                });
+
+                if (tournamentPlayers.length > 0) {
+                    const roundPlayerRepository = this.connection.getRepository(TournamentRoundPlayerEntity);
+                    const newRoundPlayers = tournamentPlayers.map((player: TournamentPlayer) => {
+                        return roundPlayerRepository.create({
+                            tournamentRoundId: tournamentRound.id,
+                            customerId: player.customerId,
+                            tableId: null, // TournamentPlayer doesn't have tableId - it's only in TournamentRoundPlayer
+                            isWinner: false, // TournamentPlayer doesn't have isWinner - it's only in TournamentRoundPlayer
+                        });
+                    });
+                    await roundPlayerRepository.save(newRoundPlayers);
+
+                    roundPlayers = await this.context.tournamentRoundPlayer.repository.find({
+                        where: { tournamentRoundId: tournamentRound.id },
+                        relations: ['customer', 'table', 'tournamentRound'],
+                        order: { tableId: 'ASC' },
+                    });
+                }
+            }
+
+            const tablesData: any = {};
+            roundPlayers.forEach((player: any) => {
+                const tableKey = player.tableId || 'unassigned';
+                if (!tablesData[tableKey]) {
+                    tablesData[tableKey] = {
+                        tableId: player.tableId,
+                        table: player.table,
+                        players: [],
+                    };
+                }
+                tablesData[tableKey].players.push({
+                    id: player.id,
+                    customerId: player.customerId,
+                    customerUuid: player.customer?.uuid,
+                    isWinner: player.isWinner,
+                    customer: player.customer,
+                });
+            });
+
+            return {
+                status: true,
+                data: {
+                    round: tournamentRound,
+                    tables: Object.values(tablesData),
+                },
+                errors: null,
+                errorMessage: null,
+            };
+        } catch (error: any) {
+            console.log(error);
+            return this.formatErrors([GlobalError.INTERNAL_SERVER_ERROR], error.message);
+        }
+    }
+
+    async startTournament(input: StartTournamentInput) {
         const { tournamentUuid, randomize } = input;
-        const tournament = await this.resolveTournament(tournamentUuid);
-        if (!tournament) {
-            return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Tournament not found');
+        const { data, errors, errorMessage } = await this.startTournamentValidate(tournamentUuid);
+        if (errors.length > 0) {
+            return this.formatErrors(errors, errorMessage);
         }
 
-        if (tournament.status !== TournamentStatus.UPCOMING) {
-            return this.formatErrors([GlobalError.INVALID_INPUT], 'Tournament already started');
-        }
+        const { tournament } = data;
+        const players = await this.context.tournamentPlayer.repository.find({
+            where: { tournamentId: tournament.id },
+            relations: ['customer']
+        });
 
-        if (!this.hasStartTimeArrived(tournament)) {
-            return this.formatErrors([GlobalError.INVALID_INPUT], 'Tournament start time not reached yet');
-        }
-
-        const hasAccess = await accessRulesByRoleHierarchy(this.context, { companyId: tournament.companyId });
-        if (!hasAccess) {
-            return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
-        }
-
-        const players = await this.fetchTournamentPlayers(tournament.id);
         if (!players.length) {
             return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'No registered players for this tournament');
         }
-
-        players.forEach((player) => {
-            player.currentRound = 0;
-            player.isWinner = false;
-            player.tableId = null as unknown as number;
-            player.table = undefined;
-        });
-        await this.repository.save(players);
 
         const assignmentResult = await this.generateRoundAssignments({
             tournament,
@@ -157,251 +222,289 @@ export default class TournamentRoundModel extends BaseModel {
             randomize,
         });
         if ('errors' in assignmentResult) {
-            return assignmentResult;
+            return this.formatErrors([GlobalError.INVALID_INPUT], 'No players available for this round');
         }
 
-        tournament.status = TournamentStatus.RUNNING;
+        tournament.status = TournamentStatus.ACTIVE;
         tournament.currentRound = 1;
         tournament.startedAt = new Date();
-        await this.context.tournament.repository.save(tournament);
+        await tournament.save();
 
-        return {
-            status: true,
-            assignments: assignmentResult.assignments,
-            tournament,
-            errors: null,
-            errorMessage: null,
-        };
+        return this.successResponse({ tournament, round: assignmentResult.round })
     }
 
-    async completeTournamentRound(input: CompleteTournamentRoundInput) {
-        const { tournamentUuid, round, winnerCustomerIds } = input;
-        const tournament = await this.resolveTournament(tournamentUuid);
-        if (!tournament) {
+    private async startTournamentValidate(tournamentUuid: string) {
+        let errors: any = [], errorMessage:any = null, data: any = {};
+        data.tournament = await this.context.tournament.repository.findOne({
+            where: { uuid: tournamentUuid }
+        });
+        if (!data.tournament) {
             return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Tournament not found');
         }
 
-        if (tournament.status !== TournamentStatus.RUNNING) {
-            return this.formatErrors([GlobalError.INVALID_INPUT], 'Tournament is not running');
+        if (data.tournament.status !== TournamentStatus.UPCOMING) {
+            return this.formatErrors([GlobalError.INVALID_INPUT], 'Tournament already started');
         }
 
-        const hasAccess = await accessRulesByRoleHierarchy(this.context, { companyId: tournament.companyId });
-        if (!hasAccess) {
+        if (!this.hasStartTimeArrived(data.tournament)) {
+            return this.formatErrors([GlobalError.INVALID_INPUT], 'Tournament start time not reached yet');
+        }
+        
+        if (!(await accessRulesByRoleHierarchy(this.context, { companyId: data.tournament.companyId }))) {
             return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
         }
 
-        const targetRound = round ?? tournament.currentRound;
-        if (!targetRound) {
-            return this.formatErrors([GlobalError.INVALID_INPUT], 'No active round to complete');
-        }
+        return { data, errors, errorMessage }
+    }
 
-        if (!winnerCustomerIds || winnerCustomerIds.length === 0) {
-            return this.formatErrors([GlobalError.INVALID_INPUT], 'Provide at least one winner');
-        }
+    async completeTournamentRoundValidate(input: CompleteTournamentRoundInput) {
+        const { tournamentUuid, winnerCustomerUuid } = input;
+        let data:any = {}, errors:any = [], errorMessage = ''
 
-        const roundEntryCount = await this.repository.count({
-            where: { tournamentId: tournament.id, currentRound: targetRound },
+        data.tournament = await this.context.tournament.repository.findOne({
+            where: { uuid: tournamentUuid, status: TournamentStatus.ACTIVE }
         });
-        if (!roundEntryCount) {
+        if (!data.tournament) {
+            return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Active tournament not found');
+        }
+
+        if (!(await accessRulesByRoleHierarchy(this.context, { companyId: data.tournament.companyId }))) {
+            return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
+        }
+
+        const customers = await this.context.customer.repository.find({
+            where: { uuid: In(winnerCustomerUuid) }
+        });
+        if (!customers.length || customers.length !== winnerCustomerUuid.length) {
+            return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Invalid winner customers');
+        }
+        data.customerIds = customers.map((customer:any) => customer.id);
+
+        data.tournamentRound = await this.repository.findOne({
+            where: { tournamentId: data.tournament.id, round: data.tournament.currentRound },
+        });
+        if (!data.tournamentRound) {
             return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Round entries not found');
         }
+        
+        return { data, errors, errorMessage }
+    }
 
-        await this.repository
-            .createQueryBuilder()
-            .update(TournamentPlayer)
-            .set({ isWinner: false })
-            .where('tournament_id = :tournamentId AND current_round = :round', {
-                tournamentId: tournament.id,
-                round: targetRound,
-            })
-            .execute();
+    async completeTournamentRound(input: CompleteTournamentRoundInput) {
 
-        await this.repository
-            .createQueryBuilder()
-            .update(TournamentPlayer)
-            .set({ isWinner: true })
-            .where('tournament_id = :tournamentId AND current_round = :round AND customer_id IN (:...winnerIds)', {
-                tournamentId: tournament.id,
-                round: targetRound,
-                winnerIds: winnerCustomerIds,
-            })
-            .execute();
+        try {
+            const { data, errors, errorMessage } = await this.completeTournamentRoundValidate(input);
+            if (errors.length > 0) {
+                return this.formatErrors(errors, errorMessage);
+            }
+            
+            const { tournament, tournamentRound, customerIds } = data;
+    
+            const transaction = await this.connection.manager.transaction(async (transactionalEntityManager: any) => {
+                if (tournament.currentRound === tournament.totalRounds) {
+                    tournament.status = TournamentStatus.COMPLETED;
+                    tournament.completedAt = new Date();
+                    await transactionalEntityManager.save(tournament);
+                }
+    
+                tournamentRound.status = TournamentRoundStatus.COMPLETED;
+                tournamentRound.completedAt = new Date();
+    
+                await transactionalEntityManager.save(tournamentRound);
+                
+                // Get TournamentRoundPlayer repository from transactional entity manager
+                const roundPlayerRepository = transactionalEntityManager.getRepository(TournamentRoundPlayerEntity);
+                await roundPlayerRepository
+                    .createQueryBuilder()
+                    .update(TournamentRoundPlayerEntity)
+                    .set({ isWinner: true })
+                    .where('tournament_round_id = :tournamentRoundId AND customer_id IN (:...customerIds)', {
+                        tournamentRoundId: tournamentRound.id,
+                        customerIds,
+                    })
+                    .execute(); 
+            });
+    
+            if (transaction && transaction.error && transaction.error.length > 0) {
+                console.log(transaction.error);
+                return this.formatErrors(GlobalError.INTERNAL_SERVER_ERROR, transaction.error);
+            } 
 
-        const winners = await this.repository.find({
-            where: { tournamentId: tournament.id, currentRound: targetRound, isWinner: true },
-            relations: ['customer', 'table'],
+            // const tournamentPlayer = await this.context.tournamentPlayer.repository.find({
+            //     where: { tournamentId: tournament.id, round: tournament.currentRound },
+            //     relations: ['customer', 'table'],
+            // });
+            // const winners = tournamentPlayer.map((entry: TournamentPlayer) => this.toRoundView(entry));
+            // if (!winners.length) {
+            //     return this.formatErrors([GlobalError.INVALID_INPUT], 'No matching winners found for provided customers');
+            // }
+
+            return this.successResponse({ tournament })
+        } catch (error: any) {
+            console.log(error);
+            return this.formatErrors([GlobalError.INTERNAL_SERVER_ERROR], error.message);
+        }
+    }
+
+    private async startNextTournamentRoundValidate(tournamentUuid: string) {
+        let errors: any = [], errorMessage:any = null, data: any = {};
+        data.tournament = await this.context.tournament.repository.findOne({
+            where: { uuid: tournamentUuid }
         });
-        const winnerViews = winners.map((entry: TournamentPlayer) => this.toRoundView(entry));
-        if (!winnerViews.length) {
-            return this.formatErrors([GlobalError.INVALID_INPUT], 'No matching winners found for provided customers');
+        if (!data.tournament) {
+            return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Tournament not found');
         }
 
-        if (targetRound === tournament.totalRounds || winnerViews.length === 1) {
-            tournament.status = TournamentStatus.COMPLETED;
-            tournament.completedAt = new Date();
-            await this.context.tournament.repository.save(tournament);
+        if (data.tournament.status !== TournamentStatus.ACTIVE) {
+            return this.formatErrors([GlobalError.INVALID_INPUT], 'Tournament is not running');
         }
 
-        return {
-            status: true,
-            winners: winnerViews,
-            tournament,
-            errors: null,
-            errorMessage: null,
-        };
+        if (!(await accessRulesByRoleHierarchy(this.context, { companyId: data.tournament.companyId }))) {
+            return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
+        }
+
+        data.winners = await this.context.tournamentPlayer.repository.find({
+            where: { tournamentId: data.tournament.id, currentRound: data.tournament.currentRound, isWinner: true },
+            relations: ['customer'],
+        });
+
+        if (!data.winners.length) {
+            return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Set winners before starting next round');
+        }
+
+        return { data, errors, errorMessage }
     }
 
     async startNextTournamentRound(input: StartNextTournamentRoundInput) {
         const { tournamentUuid, randomize } = input;
-        const tournament = await this.resolveTournament(tournamentUuid);
-        if (!tournament) {
-            return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Tournament not found');
+        const { data, errors, errorMessage } = await this.startNextTournamentRoundValidate(tournamentUuid);
+        if (errors.length > 0) {
+            return this.formatErrors(errors, errorMessage);
         }
 
-        if (tournament.status !== TournamentStatus.RUNNING) {
-            return this.formatErrors([GlobalError.INVALID_INPUT], 'Tournament is not running');
-        }
-
-        const hasAccess = await accessRulesByRoleHierarchy(this.context, { companyId: tournament.companyId });
-        if (!hasAccess) {
-            return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
-        }
-
-        if (!tournament.currentRound) {
-            return this.formatErrors([GlobalError.INVALID_INPUT], 'Tournament has not started');
-        }
-
-        if (tournament.currentRound >= tournament.totalRounds) {
-            return this.formatErrors([GlobalError.INVALID_INPUT], 'All rounds have already been generated');
-        }
-
-        const winners = await this.repository.find({
-            where: { tournamentId: tournament.id, currentRound: tournament.currentRound, isWinner: true },
-            relations: ['customer'],
-        });
-
-        if (!winners.length) {
-            return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Set winners before starting next round');
-        }
-
+        const { tournament, winners } = data;
         const nextRound = tournament.currentRound + 1;
-        const assignmentResult = await this.generateRoundAssignments({
-            tournament,
-            round: nextRound,
-            players: winners,
-            randomize,
-        });
+        const assignmentResult = await this.generateRoundAssignments({ tournament, round: nextRound, players: winners, randomize });
         if ('errors' in assignmentResult) {
-            return assignmentResult;
-        }
-
-        tournament.currentRound = nextRound;
-        await this.context.tournament.repository.save(tournament);
-
-        return {
-            status: true,
-            assignments: assignmentResult.assignments,
-            tournament,
-            errors: null,
-            errorMessage: null,
-        };
-    }
-
-    private async fetchTournamentPlayers(tournamentId: number): Promise<TournamentPlayer[]> {
-        return this.context.tournamentPlayer.repository.find({
-            where: { tournamentId },
-            relations: ['customer'],
-            order: { id: 'ASC' },
-        });
-    }
-
-    private async generateRoundAssignments({
-        tournament,
-        round,
-        players,
-        randomize,
-    }: {
-        tournament: Tournament;
-        round: number;
-        players: TournamentPlayer[];
-        randomize?: boolean;
-    }): Promise<AssignmentGenerationResult> {
-        if (!players.length) {
             return this.formatErrors([GlobalError.INVALID_INPUT], 'No players available for this round');
         }
 
-        const tables: Table[] = await this.context.table.repository.find({
-            where: { companyId: tournament.companyId },
-            order: { sortNo: 'ASC', id: 'ASC' },
-        });
-
-        if (!tables.length) {
-            return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'No tables available for this tournament');
-        }
-
-        const groupSize = tournament.groupSize || 4;
-        const requiredTables = Math.ceil(players.length / groupSize);
-        if (tables.length < requiredTables) {
-            return this.formatErrors(
-                [GlobalError.VALIDATION_ERROR],
-                `Not enough tables. Required ${requiredTables}, available ${tables.length}`,
-            );
-        }
-
-        const shuffled = [...players];
-        if (randomize) {
-            this.shuffle(shuffled);
-        }
-
-        const activeTables = tables.slice(0, requiredTables);
-        const updatedPlayers: TournamentPlayer[] = [];
-        const assignments: AssignmentResult[] = [];
-
-        activeTables.forEach((table, index) => {
-            const start = index * groupSize;
-            const group = shuffled.slice(start, start + groupSize);
-            if (!group.length) {
-                return;
-            }
-
-            const playerRounds: RoundView[] = [];
-            const playerIds: number[] = [];
-
-            group.forEach((player: TournamentPlayer) => {
-                player.currentRound = round;
-                player.isWinner = false;
-                player.tableId = table.id;
-                player.table = table;
-                updatedPlayers.push(player);
-                playerIds.push(player.customerId);
-                playerRounds.push(this.toRoundView(player));
-            });
-
-            assignments.push({
-                round,
-                tableId: table.id,
-                table,
-                playerIds,
-                entries: playerRounds,
-            });
-        });
-
-        await this.repository.save(updatedPlayers);
-
-        return { assignments };
+        return this.successResponse({ tournament, round: assignmentResult.round })
     }
 
-    private toRoundView(player: TournamentPlayer): RoundView {
+    private async generateRoundAssignments(params: GenerateRoundAssignmentsParams): Promise<AssignmentGenerationResult> {
+        const { tournament, round, players, randomize } = params;
+        try {
+            const groupSize = tournament.groupSize || 4;
+            const expectedTables = Math.ceil(((tournament.playerLimit || players.length) || 0) / groupSize) || 1;
+            
+            const activeTables: Table[] = await this.context.table.repository.find({
+                where: { companyId: tournament.companyId, status: TableStatus.ACTIVE },
+                take: expectedTables
+            });
+    
+            if (!activeTables.length) {
+                return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'No tables available for this tournament');
+            }
+    
+            if (activeTables.length < expectedTables) {
+                return this.formatErrors(
+                    [GlobalError.VALIDATION_ERROR],
+                    `Not enough tables. Required ${expectedTables}, available ${activeTables.length}`,
+                );
+            }
+    
+            const shuffled = [...players];
+            if (randomize) {
+                this.shuffle(shuffled);
+            }
+    
+            const assignments: AssignmentResult[] = [];
+            const playerTableMap = new Map<number, number>(); // Map customerId to tableId
+            const roundPlayerData: Array<{ customerId: number; tableId: number }> = [];
+            
+            activeTables.forEach((table, index) => {
+                const start = index * groupSize;
+                const group = shuffled.slice(start, start + groupSize);
+                if (!group.length) {
+                    return;
+                }
+    
+                const playerRounds: RoundView[] = [];
+                const playerIds: number[] = [];
+    
+                group.forEach((player: TournamentPlayer) => {
+                    playerIds.push(player.customerId);
+                    playerTableMap.set(player.customerId, table.id);
+                    roundPlayerData.push({
+                        customerId: player.customerId,
+                        tableId: table.id
+                    });
+                    playerRounds.push(this.toRoundView(player, table.id, table, round, false));
+                });
+    
+                assignments.push({
+                    round,
+                    tableId: table.id,
+                    table,
+                    playerIds,
+                    entries: playerRounds,
+                });
+            });
+    
+            // Get or create TournamentRound
+            let tournamentRound = await this.repository.findOne({
+                where: { tournamentId: tournament.id, round }
+            });
+    
+            if (!tournamentRound) {
+                tournamentRound = this.repository.create({
+                    tournamentId: tournament.id,
+                    round,
+                    playerCount: roundPlayerData.length,
+                    tableCount: activeTables.length,
+                    status: TournamentRoundStatus.ACTIVE,
+                    startedAt: new Date()
+                });
+            } else {
+                tournamentRound.playerCount = roundPlayerData.length;
+                tournamentRound.tableCount = activeTables.length;
+                tournamentRound.status = TournamentRoundStatus.ACTIVE;
+                tournamentRound.startedAt = new Date();
+            }
+            await this.repository.save(tournamentRound);
+    
+            // Delete existing round players for this round (in case of re-assignment)
+            await this.context.tournamentRoundPlayer.repository.delete({ tournamentRoundId: tournamentRound.id });
+    
+            // Create TournamentRoundPlayer records with table assignments
+            const roundPlayers = roundPlayerData.map((data) => {
+                return this.context.tournamentRoundPlayer.repository.create({
+                    tournamentRoundId: tournamentRound.id,
+                    customerId: data.customerId,
+                    tableId: data.tableId,
+                    isWinner: false,
+                });
+            });
+            await this.context.tournamentRoundPlayer.repository.save(roundPlayers);
+    
+            return { assignments, round: tournamentRound };
+        } catch (error: any) {
+            return this.formatErrors([GlobalError.INTERNAL_SERVER_ERROR], error.message);
+        }
+    }
+
+    private toRoundView(player: TournamentPlayer, tableId?: number, table?: Table, round?: number, isWinner?: boolean): RoundView {
         return {
             id: player.id,
             tournamentId: player.tournamentId,
             customerId: player.customerId,
-            tableId: player.tableId ?? null,
-            round: player.currentRound,
-            isWinner: player.isWinner,
+            tableId: tableId ?? null,
+            round: round ?? 0,
+            isWinner: isWinner ?? false,
             createdAt: player.createdAt,
             customer: player.customer,
-            table: player.table || null,
+            table: table || null,
         };
     }
 

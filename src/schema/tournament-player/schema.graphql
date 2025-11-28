@@ -12,7 +12,6 @@ type TournamentPlayer {
 # Queries
 #------------------------
 extend type Query {
-    tournamentPlayers(tournamentUuid: ID!): TournamentPlayersPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
     playerRegistrationBill(params: PlayerRegistrationBillInput!): PlayerRegistrationBillPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
 }
 
@@ -29,24 +28,25 @@ extend type Mutation {
 #------------------------
 type TournamentPlayersPayload {
     list: [TournamentPlayer]
-    errors: GlobalError
+    errors: [GlobalError]
     status: Boolean
     errorMessage: String
 }
 
 type PlayerRegistrationBillPayload {
     data: Tournament
-    errors: GlobalError
+    errors: [GlobalError]
     status: Boolean
     errorMessage: String
 }
 
 type SaveTournamentPlayerPayload {
     data: Tournament
-    errors: GlobalError
+    errors: [GlobalError]
     status: Boolean
     errorMessage: String
 }
+
 
 input PlayerRegistrationBillInput {
     customerUuid: ID!
@@ -58,4 +58,10 @@ input PlayerRegistrationInput {
     tournamentUuid: ID!
     tableUuid: ID
     paymentMethod: PaymentMethodInput!
+}
+
+input TournamentUnregisteredCustomersInput {
+    tournamentUuid: ID!
+    searchText: String
+    paging: PaginatorInput
 }

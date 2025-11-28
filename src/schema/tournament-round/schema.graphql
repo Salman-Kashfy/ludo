@@ -1,15 +1,31 @@
+type TournamentPlayers {
+    uuid: ID!
+    phone: String!
+    isWinner: Boolean
+}
+
+type TournamentTable {
+    uuid: ID!
+    name: String!
+    customers: TournamentPlayers
+}
+
 type TournamentRound {
     id: Int!
+    uuid: ID!
     tournamentId: Int!
-    customerId: Int!
-    tableId: Int
     round: Int!
-    isWinner: Boolean
-    createdAt: Datetime
+    playerCount: Int!
+    tableCount: Int!
+    status: TournamentRoundStatus!
+    createdAt: Datetime!
+    updatedAt: Datetime!
+    startedAt: Datetime
+    completedAt: Datetime
 
     # Relations
-    customer: Customer
-    table: Table
+    tournament: Tournament
+    table: TournamentTable
 }
 
 type TournamentRoundAssignment {
@@ -25,27 +41,25 @@ type TournamentRoundAssignment {
 #------------------------
 extend type Query {
     tournamentRounds(params: TournamentRoundFilter!): TournamentRoundsPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
+    tournamentAllRounds(tournamentUuid: ID!): TournamentRoundsPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
+    tournamentRound(tournamentUuid: ID!, round: Int!): GetTournamentRoundPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
 }
 
 #------------------------
 # Mutations
 #------------------------
 extend type Mutation {
-    startTournamentRound(input: StartTournamentRoundInput!): TournamentRoundTransitionPayload! @requireAuth @requirePermissions(permissions: ["tournament:create"])
+    startTournament(input: StartTournamentInput!): TournamentRoundTransitionPayload! @requireAuth @requirePermissions(permissions: ["tournament:create"])
     completeTournamentRound(input: CompleteTournamentRoundInput!): CompleteTournamentRoundPayload! @requireAuth @requirePermissions(permissions: ["tournament:create"])
     startNextTournamentRound(input: StartNextTournamentRoundInput!): TournamentRoundTransitionPayload! @requireAuth @requirePermissions(permissions: ["tournament:create"])
 }
 
 input TournamentRoundFilter {
     tournamentUuid: ID!
-    round: Int
-    tableId: Int
-    customerId: Int
-    winnersOnly: Boolean
-    paging: PaginatorInput
+    round: Int!
 }
 
-input StartTournamentRoundInput {
+input StartTournamentInput {
     tournamentUuid: ID!
     randomize: Boolean
 }
@@ -53,7 +67,7 @@ input StartTournamentRoundInput {
 input CompleteTournamentRoundInput {
     tournamentUuid: ID!
     round: Int
-    winnerCustomerIds: [Int!]!
+    winnerCustomerUuid: [String!]!
 }
 
 input StartNextTournamentRoundInput {
@@ -64,30 +78,78 @@ input StartNextTournamentRoundInput {
 type TournamentRoundPayload {
     status: Boolean
     data: TournamentRound
-    errors: GlobalError
+    errors: [GlobalError]
     errorMessage: String
 }
 
 type TournamentRoundsPayload {
-    status: Boolean
     list: [TournamentRound]
-    paging: PaginatorOutputUpdated
-    errors: GlobalError
-    errorMessage: String
 }
 
 type TournamentRoundTransitionPayload {
+    data: TournamentRoundTransition
+    errors: [GlobalError]
     status: Boolean
-    tournament: Tournament
-    assignments: [TournamentRoundAssignment]
-    errors: GlobalError
     errorMessage: String
+}
+
+type TournamentRoundTransition {
+    tournament: Tournament
+    round: TournamentRound
+    uuid: ID
+    status: TournamentStatus
+    currentRound: Int
+    startedAt: Datetime
+}
+
+type TournamentRoundWinner {
+    id: Int!
+    tournamentId: Int!
+    customerId: Int!
+    tableId: Int
+    round: Int!
+    isWinner: Boolean!
+    createdAt: Datetime!
+    customer: Customer
+    table: Table
 }
 
 type CompleteTournamentRoundPayload {
     status: Boolean
-    tournament: Tournament
-    winners: [TournamentRound]
-    errors: GlobalError
+    data: Tournament
+    errors: [GlobalError]
     errorMessage: String
+}
+
+type TournamentRoundTable {
+    tableId: Int
+    table: Table
+    players: [TournamentRoundTablePlayer!]!
+}
+
+type TournamentRoundTablePlayer {
+    id: Int!
+    customerId: Int!
+    customerUuid: ID!
+    isWinner: Boolean!
+    customer: Customer
+}
+
+type GetTournamentRoundData {
+    round: TournamentRound!
+    tables: [TournamentRoundTable!]!
+}
+
+type GetTournamentRoundPayload {
+    status: Boolean
+    data: GetTournamentRoundData
+    errors: [GlobalError]
+    errorMessage: String
+}
+
+enum TournamentRoundStatus {
+    UPCOMING
+    ACTIVE
+    COMPLETED
+    CANCELLED
 }

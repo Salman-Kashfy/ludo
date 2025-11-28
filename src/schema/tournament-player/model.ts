@@ -1,49 +1,23 @@
 import BaseModel from '../baseModel';
 import { TournamentPlayer as TournamentPlayerEntity } from '../../database/entity/TournamentPlayer';
+import { Customer as CustomerEntity } from '../../database/entity/Customer';
 import Context from '../context';
 import { GlobalError, PaymentStatus } from '../root/enum';
 import { accessRulesByRoleHierarchy } from '../../shared/lib/DataRoleUtils';
 import { Status } from '../../database/entity/root/enums';
 import { PaymentMethodInput } from '../payment/types';
+import { Brackets } from 'typeorm';
+import { PagingInterface } from '../../interfaces';
 
 export default class TournamentPlayer extends BaseModel {
     repository: any;
     connection: any;
     loaders: any;
+    customerRepository: any;
 
     constructor(connection: any, context: Context) {
         super(connection, connection.getRepository(TournamentPlayerEntity), context);
-    }
-
-    async index(tournamentUuid: string) {
-        try {
-            const tournament = await this.context.tournament.repository.findOne({
-                where: { uuid: tournamentUuid },
-                relations: ['company'],
-            });
-
-            if (!tournament) {
-                return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Tournament not found');
-            }
-
-            if (!(await accessRulesByRoleHierarchy(this.context, { companyId: tournament.companyId }))) {
-                return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
-            }
-
-            const tournamentPlayers = await this.repository.find({
-                where: { tournamentId: tournament.id },
-                relations: ['customer', 'table'],
-            });
-
-            return {
-                status: true,
-                list: tournamentPlayers,
-                errors: null,
-                errorMessage: null,
-            };
-        } catch (error: any) {
-            return this.formatErrors([GlobalError.INTERNAL_SERVER_ERROR], error.message);
-        }
+        this.customerRepository = connection.getRepository(CustomerEntity);
     }
 
     async playerRegistrationBill(params: { customerUuid: string, tournamentUuid: string }) {
@@ -169,6 +143,64 @@ export default class TournamentPlayer extends BaseModel {
             return this.successResponse(tournament);
         } catch (error: any) {
             console.error('Player registration error:', error);
+            return this.formatErrors([GlobalError.INTERNAL_SERVER_ERROR], error.message);
+        }
+    }
+
+    async unregisteredCustomers(params: { tournamentUuid: string; searchText?: string; paging?: PagingInterface }) {
+        const { tournamentUuid, searchText, paging } = params;
+
+        try {
+            const tournament = await this.context.tournament.repository.findOne({
+                where: { uuid: tournamentUuid },
+                relations: ['company'],
+            });
+
+            if (!tournament) {
+                return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Tournament not found');
+            }
+
+            if (!(await accessRulesByRoleHierarchy(this.context, { companyId: tournament.companyId }))) {
+                return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
+            }
+
+            const query = this.customerRepository
+                .createQueryBuilder('c')
+                .leftJoin(
+                    TournamentPlayerEntity,
+                    'tp',
+                    'tp.customer_id = c.id AND tp.tournament_id = :tournamentId',
+                    { tournamentId: tournament.id },
+                )
+                .where('tp.id IS NULL')
+                .andWhere('c.company_id = :companyId', { companyId: tournament.companyId });
+
+            if (searchText && searchText.trim()) {
+                const sanitizedSearch = searchText.replace(/^0+/, '');
+                query.andWhere(
+                    new Brackets((qb) => {
+                        qb.where("concat(c.phone_code, c.phone_number) ILIKE :searchText").orWhere(
+                            "(concat(c.first_name, ' ', c.last_name) ILIKE :searchText)",
+                        );
+                    }),
+                    { searchText: `%${sanitizedSearch}%` },
+                );
+            }
+
+            const pagingInput: PagingInterface = paging
+                ? { ...paging }
+                : { page: 1, limit: 10 };
+
+            const { list, paging: pagination } = await this.paginator(query, pagingInput);
+
+            return {
+                status: true,
+                list,
+                paging: pagination,
+                errors: null,
+                errorMessage: null,
+            };
+        } catch (error: any) {
             return this.formatErrors([GlobalError.INTERNAL_SERVER_ERROR], error.message);
         }
     }

@@ -1,0 +1,54 @@
+type TournamentRoundPlayer {
+    id: Int!
+    tournamentRoundId: Int!
+    customerId: Int!
+    tableId: Int
+    isWinner: Boolean!
+    createdAt: Datetime!
+
+    # Relations
+    tournamentRound: TournamentRound
+    customer: Customer
+    table: Table
+}
+
+#------------------------
+# Queries
+#------------------------
+extend type Query {
+    tournamentRoundPlayers(params: TournamentRoundPlayerFilter!): TournamentRoundPlayersPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
+}
+
+#------------------------
+# Mutations
+#------------------------
+extend type Mutation {
+    updateTournamentRoundWinners(input: UpdateTournamentRoundWinnersInput!): TournamentRoundPlayersPayload! @requireAuth @requirePermissions(permissions: ["tournament:create"])
+}
+
+#------------------------
+# Payload types
+#------------------------
+type TournamentRoundPlayersPayload {
+    status: Boolean
+    list: [TournamentRoundPlayer]
+    errors: GlobalError
+    errorMessage: String
+}
+
+#------------------------
+# Input types
+#------------------------
+input TournamentRoundPlayerFilter {
+    tournamentRoundUuid: ID
+    tournamentRoundId: Int
+    tableId: Int
+    customerId: Int
+    winnersOnly: Boolean
+}
+
+input UpdateTournamentRoundWinnersInput {
+    tournamentRoundUuid: ID!
+    winnerCustomerIds: [Int!]!
+}
+
