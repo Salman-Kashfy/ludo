@@ -22,12 +22,10 @@ type Tournament {
 }
 
 enum TournamentStatus {
+    ACTIVE
     UPCOMING
-    RUNNING
     COMPLETED
     CANCELLED
-    POSTPONED
-    UNKNOWN
 }
 
 #------------------------
