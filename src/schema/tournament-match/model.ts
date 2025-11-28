@@ -87,11 +87,13 @@ export default class TournamentMatchModel extends BaseModel {
                     const sample = group[0];
                     matches.push({
                         tournamentRoundId: roundEntry.id,
+                        tournamentRoundUuid: roundEntry.uuid,
                         round: roundEntry.round,
                         tableId: sample.tableId ?? null,
                         table: sample.table ?? null,
                         players: group.map((player) => ({
                             customerId: player.customerId,
+                            customerUuid: player.customer?.uuid || '',
                             isWinner: player.isWinner,
                             customer: player.customer,
                         })),

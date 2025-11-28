@@ -1,5 +1,6 @@
 type TournamentMatchPlayer {
     customerId: Int!
+    customerUuid: ID!
     isWinner: Boolean!
 
     # Relations
@@ -8,6 +9,7 @@ type TournamentMatchPlayer {
 
 type TournamentMatch {
     tournamentRoundId: Int!
+    tournamentRoundUuid: ID!
     round: Int!
     tableId: Int
 

@@ -10,12 +10,14 @@ export interface TournamentMatchFilterInput {
 
 export interface TournamentMatchPlayerView {
     customerId: number;
+    customerUuid: string;
     isWinner: boolean;
     customer?: Customer;
 }
 
 export interface TournamentMatchView {
     tournamentRoundId: number;
+    tournamentRoundUuid: string;
     round: number;
     tableId?: number | null;
     table?: Table | null;

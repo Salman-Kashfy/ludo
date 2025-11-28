@@ -6,6 +6,7 @@ import { Tournament } from '../../database/entity/Tournament';
 import { Table } from '../../database/entity/Table';
 import { TournamentPlayer } from '../../database/entity/TournamentPlayer';
 import { TournamentRound as TournamentRoundEntity } from '../../database/entity/TournamentRound';
+import { TournamentRoundPlayer as TournamentRoundPlayerEntity } from '../../database/entity/TournamentRoundPlayer';
 import { TournamentStatus } from '../tournament/types';
 import { TournamentRoundFilterInput, TournamentRoundStatus } from './types';
 import { TableStatus } from '../table/types';
@@ -54,8 +55,43 @@ type AssignmentGenerationResult =
     | ReturnType<TournamentRoundModel['formatErrors']>;
 
 export default class TournamentRoundModel extends BaseModel {
+    private tournamentRoundRepository: any;
+
     constructor(connection: any, context: Context) {
         super(connection, connection.getRepository(TournamentPlayer), context);
+        this.tournamentRoundRepository = connection.getRepository(TournamentRoundEntity);
+    }
+
+    async getAllRounds(tournamentUuid: string) {
+        try {
+            const tournament = await this.context.tournament.repository.findOne({
+                where: { uuid: tournamentUuid },
+                relations: ['company'],
+            });
+
+            if (!tournament) {
+                return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Tournament not found');
+            }
+
+            if (!(await accessRulesByRoleHierarchy(this.context, { companyId: tournament.companyId }))) {
+                return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
+            }
+
+            const rounds = await this.tournamentRoundRepository.find({
+                where: { tournamentId: tournament.id },
+                order: { round: 'ASC' },
+                relations: ['tournament'],
+            });
+
+            return {
+                status: true,
+                list: rounds,
+                errors: null,
+                errorMessage: null,
+            };
+        } catch (error: any) {
+            return this.formatErrors([GlobalError.INTERNAL_SERVER_ERROR], error.message);
+        }
     }
 
     async index(params:TournamentRoundFilterInput) {
@@ -72,7 +108,7 @@ export default class TournamentRoundModel extends BaseModel {
             return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
         }
 
-        const rows = await this.repository.find({
+        const rows = await this.context.tournamentRoundPlayer.repository.find({
             relations: ['customer', 'table'],
             where: { tournamentId: tournament.id, round }
         });
@@ -98,6 +134,104 @@ export default class TournamentRoundModel extends BaseModel {
         }
 
         return { list: tournamentRounds }
+    }
+
+    async getTournamentRound(tournamentUuid: string, round: number) {
+        try {
+            const tournament = await this.context.tournament.repository.findOne({
+                where: { uuid: tournamentUuid },
+                relations: ['company'],
+            });
+
+            if (!tournament) {
+                return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Tournament not found');
+            }
+
+            if (!(await accessRulesByRoleHierarchy(this.context, { companyId: tournament.companyId }))) {
+                return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
+            }
+
+            // Get the tournament round
+            const tournamentRound = await this.tournamentRoundRepository.findOne({
+                where: { tournamentId: tournament.id, round },
+                relations: ['tournament'],
+            });
+
+            if (!tournamentRound) {
+                return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Tournament round not found');
+            }
+
+            // Get all players for this round, grouped by table
+            let roundPlayers = await this.context.tournamentRoundPlayer.repository.find({
+                where: { tournamentRoundId: tournamentRound.id },
+                relations: ['customer', 'table', 'tournamentRound'],
+                order: { tableId: 'ASC' },
+            });
+
+            // If no TournamentRoundPlayer records exist, create them from TournamentPlayer records
+            if (!roundPlayers.length) {
+                const tournamentPlayers = await this.repository.find({
+                    where: { 
+                        tournamentId: tournament.id, 
+                        currentRound: round 
+                    },
+                    relations: ['customer', 'table'],
+                });
+
+                if (tournamentPlayers.length > 0) {
+                    // Create TournamentRoundPlayer records from TournamentPlayer data
+                    const roundPlayerRepository = this.connection.getRepository(TournamentRoundPlayerEntity);
+                    const newRoundPlayers = tournamentPlayers.map((player: TournamentPlayer) => {
+                        return roundPlayerRepository.create({
+                            tournamentRoundId: tournamentRound.id,
+                            customerId: player.customerId,
+                            tableId: player.tableId,
+                            isWinner: player.isWinner,
+                        });
+                    });
+                    await roundPlayerRepository.save(newRoundPlayers);
+
+                    // Reload with relations
+                    roundPlayers = await this.context.tournamentRoundPlayer.repository.find({
+                        where: { tournamentRoundId: tournamentRound.id },
+                        relations: ['customer', 'table', 'tournamentRound'],
+                        order: { tableId: 'ASC' },
+                    });
+                }
+            }
+
+            // Group players by table
+            const tablesData: any = {};
+            roundPlayers.forEach((player: any) => {
+                const tableKey = player.tableId || 'unassigned';
+                if (!tablesData[tableKey]) {
+                    tablesData[tableKey] = {
+                        tableId: player.tableId,
+                        table: player.table,
+                        players: [],
+                    };
+                }
+                tablesData[tableKey].players.push({
+                    id: player.id,
+                    customerId: player.customerId,
+                    customerUuid: player.customer?.uuid,
+                    isWinner: player.isWinner,
+                    customer: player.customer,
+                });
+            });
+
+            return {
+                status: true,
+                data: {
+                    round: tournamentRound,
+                    tables: Object.values(tablesData),
+                },
+                errors: null,
+                errorMessage: null,
+            };
+        } catch (error: any) {
+            return this.formatErrors([GlobalError.INTERNAL_SERVER_ERROR], error.message);
+        }
     }
 
     async startTournament(input: StartTournamentInput) {
@@ -228,7 +362,31 @@ export default class TournamentRoundModel extends BaseModel {
             await this.context.tournament.repository.save(tournament);
         }
 
-        return this.successResponse(tournament)
+        // Also update TournamentRoundPlayer records
+        const roundEntity = await this.tournamentRoundRepository.findOne({
+            where: { tournamentId: tournament.id, round: targetRound }
+        });
+        
+        if (roundEntity) {
+            const roundPlayerRepository = this.connection.getRepository(TournamentRoundPlayerEntity);
+            // Reset all winners for this round
+            await roundPlayerRepository.update(
+                { tournamentRoundId: roundEntity.id },
+                { isWinner: false }
+            );
+            // Set winners using In operator
+            await roundPlayerRepository
+                .createQueryBuilder()
+                .update(TournamentRoundPlayerEntity)
+                .set({ isWinner: true })
+                .where('tournament_round_id = :roundId AND customer_id IN (:...winnerIds)', {
+                    roundId: roundEntity.id,
+                    winnerIds: winnerCustomerIds,
+                })
+                .execute();
+        }
+
+        return this.successResponse({ tournament, winners: winnerViews })
     }
 
     private async startNextTournamentRoundValidate(tournamentUuid: string) {
@@ -366,6 +524,23 @@ export default class TournamentRoundModel extends BaseModel {
             roundEntity.startedAt = new Date();
         }
         await roundRepository.save(roundEntity);
+
+        // Create TournamentRoundPlayer records for each assigned player
+        const roundPlayerRepository = this.connection.getRepository(TournamentRoundPlayerEntity);
+        
+        // Delete existing round players for this round (in case of re-assignment)
+        await roundPlayerRepository.delete({ tournamentRoundId: roundEntity.id });
+
+        // Create new round player records
+        const roundPlayers = updatedPlayers.map((player: TournamentPlayer) => {
+            return roundPlayerRepository.create({
+                tournamentRoundId: roundEntity.id,
+                customerId: player.customerId,
+                tableId: player.tableId,
+                isWinner: false,
+            });
+        });
+        await roundPlayerRepository.save(roundPlayers);
 
         return { assignments, round: roundEntity };
     }

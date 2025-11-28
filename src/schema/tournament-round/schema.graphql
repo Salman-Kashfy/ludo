@@ -41,6 +41,8 @@ type TournamentRoundAssignment {
 #------------------------
 extend type Query {
     tournamentRounds(params: TournamentRoundFilter!): TournamentRoundsPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
+    tournamentAllRounds(tournamentUuid: ID!): TournamentRoundsPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
+    getTournamentRound(tournamentUuid: ID!, round: Int!): GetTournamentRoundPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
 }
 
 #------------------------
@@ -100,10 +102,48 @@ type TournamentRoundTransition {
     startedAt: Datetime
 }
 
+type TournamentRoundWinner {
+    id: Int!
+    tournamentId: Int!
+    customerId: Int!
+    tableId: Int
+    round: Int!
+    isWinner: Boolean!
+    createdAt: Datetime!
+    customer: Customer
+    table: Table
+}
+
 type CompleteTournamentRoundPayload {
     status: Boolean
     tournament: Tournament
-    winners: [TournamentRound]
+    winners: [TournamentRoundWinner!]!
+    errors: [GlobalError]
+    errorMessage: String
+}
+
+type TournamentRoundTable {
+    tableId: Int
+    table: Table
+    players: [TournamentRoundTablePlayer!]!
+}
+
+type TournamentRoundTablePlayer {
+    id: Int!
+    customerId: Int!
+    customerUuid: ID!
+    isWinner: Boolean!
+    customer: Customer
+}
+
+type GetTournamentRoundData {
+    round: TournamentRound!
+    tables: [TournamentRoundTable!]!
+}
+
+type GetTournamentRoundPayload {
+    status: Boolean
+    data: GetTournamentRoundData
     errors: [GlobalError]
     errorMessage: String
 }

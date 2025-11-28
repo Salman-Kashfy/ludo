@@ -18,6 +18,9 @@ export default {
         customer(player: any) {
             return player.customer || null;
         },
+        customerUuid(player: any) {
+            return player.customerUuid || player.customer?.uuid || null;
+        },
     },
 };
 
