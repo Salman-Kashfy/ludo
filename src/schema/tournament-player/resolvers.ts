@@ -8,6 +8,9 @@ export default {
         playerRegistrationBill(_: any, { params }: any, context: Context) {
             return context.tournamentPlayer.playerRegistrationBill(params);
         },
+        tournamentUnregisteredCustomers(_: any, { params }: any, context: Context) {
+            return context.tournamentPlayer.unregisteredCustomers(params);
+        },
     },
     Mutation: {
         playerRegistration(_: any, { input }: any, context: Context) {

@@ -1,15 +1,31 @@
+type TournamentPlayers {
+    uuid: ID!
+    phone: String!
+    isWinner: Boolean
+}
+
+type TournamentTable {
+    uuid: ID!
+    name: String!
+    customers: TournamentPlayers
+}
+
 type TournamentRound {
     id: Int!
+    uuid: ID!
     tournamentId: Int!
-    customerId: Int!
-    tableId: Int
     round: Int!
-    isWinner: Boolean
-    createdAt: Datetime
+    playerCount: Int!
+    tableCount: Int!
+    status: TournamentRoundStatus!
+    createdAt: Datetime!
+    updatedAt: Datetime!
+    startedAt: Datetime
+    completedAt: Datetime
 
     # Relations
-    customer: Customer
-    table: Table
+    tournament: Tournament
+    table: TournamentTable
 }
 
 type TournamentRoundAssignment {
@@ -38,11 +54,7 @@ extend type Mutation {
 
 input TournamentRoundFilter {
     tournamentUuid: ID!
-    round: Int
-    tableId: Int
-    customerId: Int
-    winnersOnly: Boolean
-    paging: PaginatorInput
+    round: Int!
 }
 
 input StartTournamentInput {
@@ -64,23 +76,18 @@ input StartNextTournamentRoundInput {
 type TournamentRoundPayload {
     status: Boolean
     data: TournamentRound
-    errors: GlobalError
+    errors: [GlobalError]
     errorMessage: String
 }
 
 type TournamentRoundsPayload {
-    status: Boolean
     list: [TournamentRound]
-    paging: PaginatorOutputUpdated
-    errors: GlobalError
-    errorMessage: String
 }
 
 type TournamentRoundTransitionPayload {
+    data: Tournament
+    errors: [GlobalError]
     status: Boolean
-    tournament: Tournament
-    assignments: [TournamentRoundAssignment]
-    errors: GlobalError
     errorMessage: String
 }
 
@@ -88,6 +95,13 @@ type CompleteTournamentRoundPayload {
     status: Boolean
     tournament: Tournament
     winners: [TournamentRound]
-    errors: GlobalError
+    errors: [GlobalError]
     errorMessage: String
+}
+
+enum TournamentRoundStatus {
+    UPCOMING
+    ACTIVE
+    COMPLETED
+    CANCELLED
 }

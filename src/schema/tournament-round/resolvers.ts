@@ -3,7 +3,7 @@ import Context from '../context';
 export default {
     Query: {
         tournamentRounds(_: any, { params }: any, context: Context) {
-            return context.tournamentRound.list(params);
+            return context.tournamentRound.index(params);
         },
     },
     Mutation: {

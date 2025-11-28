@@ -1,12 +1,8 @@
 export enum TournamentStatus {
-    UPCOMING = 'UPCOMING',
     ACTIVE = 'ACTIVE',
-    BOOKED = 'BOOKED',
-    RUNNING = 'RUNNING',
+    UPCOMING = 'UPCOMING',
     COMPLETED = 'COMPLETED',
     CANCELLED = 'CANCELLED',
-    POSTPONED = 'POSTPONED',
-    UNKNOWN = 'UNKNOWN',
 }
 
 export interface TournamentInput {
