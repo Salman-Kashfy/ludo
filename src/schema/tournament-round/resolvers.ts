@@ -17,5 +17,19 @@ export default {
             return context.tournamentRound.startNextTournamentRound(input);
         },
     },
+    TournamentRoundTransition: {
+        uuid(parent: any) {
+            return parent.round?.uuid ?? null;
+        },
+        status(parent: any) {
+            return parent.tournament?.status ?? null;
+        },
+        currentRound(parent: any) {
+            return parent.tournament?.currentRound ?? null;
+        },
+        startedAt(parent: any) {
+            return parent.round?.startedAt ?? parent.tournament?.startedAt ?? null;
+        },
+    },
 };
 

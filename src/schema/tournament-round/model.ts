@@ -346,7 +346,7 @@ export default class TournamentRoundModel extends BaseModel {
 
         await this.repository.save(updatedPlayers);
 
-        const roundRepository = this.context.connection.getRepository(TournamentRoundEntity);
+        const roundRepository = this.connection.getRepository(TournamentRoundEntity);
         let roundEntity = await roundRepository.findOne({
             where: { tournamentId: tournament.id, round }
         });

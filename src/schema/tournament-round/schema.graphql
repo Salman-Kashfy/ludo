@@ -94,6 +94,10 @@ type TournamentRoundTransitionPayload {
 type TournamentRoundTransition {
     tournament: Tournament
     round: TournamentRound
+    uuid: ID
+    status: TournamentStatus
+    currentRound: Int
+    startedAt: Datetime
 }
 
 type CompleteTournamentRoundPayload {
