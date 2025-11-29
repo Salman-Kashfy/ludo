@@ -366,7 +366,7 @@ export default class TournamentRoundModel extends BaseModel {
             const expectedTables = Math.ceil(((players.length || tournament.playerLimit) || 0) / groupSize) || 1;
             
             const activeTables: Table[] = await this.context.table.repository.find({
-                where: { companyId: tournament.companyId, status: TableStatus.ACTIVE },
+                where: { companyId: tournament.companyId, status: TableStatus.ACTIVE, categoryId: tournament.categoryId },
                 take: expectedTables
             });
     
