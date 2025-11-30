@@ -11,6 +11,12 @@ export const tournamentPlayers = (input: TournamentPlayerInput) => {
             customerId: i
         });
     }
+    for (let i = 1; i <= 32; i++) {
+        players.push({
+            tournamentId: 2,
+            customerId: i
+        });
+    }
     return players;
 };
 
