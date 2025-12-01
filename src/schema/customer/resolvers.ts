@@ -10,10 +10,7 @@ export default {
         }
     },
     Mutation: {
-        createCustomer(root: any, {input}:any, context:Context) {
-            return context.customer.save(input);
-        },
-        updateCustomer(root: any, {input}: any, context: Context) {
+        saveCustomer(root: any, {input}:any, context:Context) {
             return context.customer.save(input);
         },
         deleteCustomer(root: any, {uuid}: any, context: Context) {

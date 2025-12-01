@@ -6,7 +6,7 @@ import { GlobalError } from "../root/enum";
 import { isEmpty } from "lodash";
 import { PagingInterface } from "../../interfaces";
 import { Brackets } from 'typeorm';
-import { addQueryBuilderFiltersByUuid } from '../../shared/lib/DataRoleUtils';
+import { addQueryBuilderFiltersByUuid, accessRulesByRoleHierarchyUuid } from '../../shared/lib/DataRoleUtils';
 
 export default class Customer extends BaseModel {
     repository: any;
@@ -59,14 +59,20 @@ export default class Customer extends BaseModel {
     async saveValidate(input: CustomerInput) {
         let errors: any = [], errorMessage = null, data: any = {};
 
-        if (isEmpty(input.firstName)) {
-            errors.push(GlobalError.REQUIRED_FIELDS_MISSING);
-            errorMessage = 'First name is required';
+        if (!(await accessRulesByRoleHierarchyUuid(this.context, { companyUuid: input.companyUuid }))) {
+            return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
         }
 
-        if (isEmpty(input.lastName)) {
-            errors.push(GlobalError.REQUIRED_FIELDS_MISSING);
-            errorMessage = 'Last name is required';
+        data.company = await this.context.company.repository.findOne({ where: { uuid: input.companyUuid } });
+        if (!data.company) {
+            return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Company not found');
+        }
+
+        if (input.uuid) {
+            data.existingEntity = await this.repository.findOne({ where: { uuid: input.uuid } });
+            if (!data.existingEntity) {
+                return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Customer not found');
+            }
         }
 
         if (errors.length > 0) {
@@ -78,60 +84,28 @@ export default class Customer extends BaseModel {
             };
         }
 
-        return {
-            data,
-            status: true,
-            errors: null,
-            errorMessage: null
-        };
+        return { data, errors, errorMessage };
     }
 
     async save(input: CustomerInput) {
-        const validation = await this.saveValidate(input);
-        if (!validation.status) {
-            return validation;
+        const { data, errors, errorMessage } = await this.saveValidate(input);
+        if (!isEmpty(errors)) {
+            return this.formatErrors(errors, errorMessage);
         }
 
         try {
-            let data;
-            if (input.uuid) {
-                data = await this.repository.findOne({ where: { uuid: input.uuid } });
-                if (!data) {
-                    return {
-                        data: null,
-                        status: false,
-                        errors: [GlobalError.RECORD_NOT_FOUND],
-                        errorMessage: 'Customer not found'
-                    };
-                }
-                data.firstName = input.firstName;
-                data.lastName = input.lastName;
-                data.phoneCode = input.phoneCode;
-                data.phoneNumber = input.phoneNumber;
-            } else {
-                data = this.repository.create({
-                    firstName: input.firstName,
-                    lastName: input.lastName,
-                    phoneCode: input.phoneCode,
-                    phoneNumber: input.phoneNumber
-                });
-            }
+            const customer: CustomerEntity = data.existingEntity || new CustomerEntity();
+            customer.firstName = input.firstName;
+            customer.lastName = input.lastName;
+            customer.phoneCode = input.phoneCode;
+            customer.phoneNumber = input.phoneNumber;
+            customer.companyId = data.company.id;
 
-            data = await this.repository.save(data);
+            await this.repository.save(customer);
 
-            return {
-                data,
-                status: true,
-                errors: null,
-                errorMessage: null
-            };
+            return this.successResponse(customer);
         } catch (error: any) {
-            return {
-                data: null,
-                status: false,
-                errors: [GlobalError.INTERNAL_SERVER_ERROR],
-                errorMessage: error.message
-            };
+            return this.formatErrors([GlobalError.INTERNAL_SERVER_ERROR], error.message);
         }
     }
 

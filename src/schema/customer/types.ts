@@ -4,6 +4,7 @@ export interface CustomerInput {
     lastName: string
     phoneCode?: string
     phoneNumber?: string
+    companyUuid: string
 }
 
 export interface CustomerFilter {
