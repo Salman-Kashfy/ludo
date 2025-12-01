@@ -29,7 +29,7 @@ app.use(bodyParser.json());
 /**
 * Configure cors. Whitelist origins for storing http only cookie on client-side.
 * */
-const allowedOrigins = ['https://app.cloudfitnest.com','https://dev.cloudfitnest.com','https://studio.apollographql.com','https://localhost','https://localhost:4000'];
+const allowedOrigins = ['https://app.cloudfitnest.com','https://dev.cloudfitnest.com','https://studio.apollographql.com','https://localhost','https://localhost:4000','http://localhost','http://localhost:5000','http://localhost:4000'];
 const corsOptions = {
     origin: allowedOrigins,
     optionsSuccessStatus: 200,

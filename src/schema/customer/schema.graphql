@@ -16,8 +16,7 @@ extend type Query {
 }
 
 extend type Mutation {
-    createCustomer(input: CreateCustomerInput!): SaveCustomerPayload @requireAuth @requirePermissions(permissions: ["customer:create"])
-    updateCustomer(input: UpdateCustomerInput!): SaveCustomerPayload @requireAuth @requirePermissions(permissions: ["customer:update"])
+    saveCustomer(input: SaveCustomerInput!): SaveCustomerPayload @requireAuth @requirePermissions(permissions: ["customer:upsert"])
     deleteCustomer(uuid: ID!): DeleteCustomerPayload @requireAuth @requirePermissions(permissions: ["customer:delete"])
 }
 
@@ -38,20 +37,15 @@ type CustomersPayload {
     paging: PaginatorOutputUpdated
 }
 
-input CreateCustomerInput {
+input SaveCustomerInput {
+    uuid: ID
     firstName: String!
     lastName: String!
-    phoneCode: String
-    phoneNumber: String
+    phoneCode: String!
+    phoneNumber: String!
+    companyUuid: ID!
 }
 
-input UpdateCustomerInput {
-    uuid: ID!
-    firstName: String!
-    lastName: String!
-    phoneCode: String
-    phoneNumber: String
-}
 
 type SaveCustomerPayload {
     data: Customer
