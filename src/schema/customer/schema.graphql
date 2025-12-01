@@ -6,8 +6,8 @@ type Customer {
     phoneCode: String
     phoneNumber: String
     phone: String
-    createdAt: String!
-    updatedAt: String!
+    createdAt: Datetime!
+    updatedAt: Datetime!
 }
 
 extend type Query {

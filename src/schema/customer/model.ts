@@ -31,6 +31,7 @@ export default class Customer extends BaseModel {
                 searchText: `%${searchText}%`
             });
         }
+        query.orderBy('c.id', 'DESC');
 
         return await this.paginator(query, paging);
     }
