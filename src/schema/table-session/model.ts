@@ -114,8 +114,10 @@ export default class TableSession extends BaseModel {
         if (!data.table) {
             return this.formatErrors([GlobalError.RECORD_NOT_FOUND], "Table not found");
         }
-        if (!data.table.category) {
-            return this.formatErrors([GlobalError.RECORD_NOT_FOUND], "Table category not found");
+
+        if(data.table.status !== TableStatus.ACTIVE) {
+
+            return this.formatErrors([GlobalError.INVALID_INPUT], "Table is booked or in use");
         }
 
         data.categoryPrice = await this.context.categoryPrice.repository.findOne({
@@ -347,7 +349,6 @@ export default class TableSession extends BaseModel {
 
                 session.table.status = TableStatus.ACTIVE;
                 await transactionalEntityManager.save(session.table);
-
                 return updatedSession;
             });
 
@@ -377,11 +378,22 @@ export default class TableSession extends BaseModel {
                 return this.formatErrors(GlobalError.INVALID_INPUT, 'Session is not active');
             }
 
-            // Update session status
-            session.status = TableSessionStatus.CANCELLED;
-            const updatedSession = await this.repository.save(session);
+            const transaction = await this.connection.manager.transaction(async (transactionalEntityManager: any) => {
+                session.status = TableSessionStatus.CANCELLED;
+                const updatedSession = await transactionalEntityManager.save(session);
 
-            return this.successResponse(updatedSession);
+                session.table.status = TableStatus.ACTIVE;
+                await transactionalEntityManager.save(session.table);
+
+                return updatedSession;
+            });
+
+            if (transaction && transaction.error && transaction.error.length > 0) {
+                console.log('transaction.error: ', transaction.error);
+                return this.formatErrors([GlobalError.EXCEPTION], transaction.error)
+            }
+
+            return this.successResponse(transaction);
         } catch (error: any) {
             return this.formatErrors(GlobalError.INTERNAL_SERVER_ERROR, error.message);
         }
