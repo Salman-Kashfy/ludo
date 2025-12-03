@@ -35,7 +35,7 @@ export const invite = async (req:Request, res:Response) => {
     if(!req.body?.inviteLink || !req.body?.password){
         return res.status(200).json({status: false, errorMessage: 'Missing params'})
     }
-    const response = await ctx.auth.invite(req.body)
+    const response = await ctx.user.invite(req.body)
     return res.status(200).json(response)
 }
 
@@ -46,7 +46,7 @@ export const validateInvite = async (req: Request, res: Response) => {
         return res.status(200).json({ status: false, errorMessage: 'Missing params' });
     }
     try{
-        const admin = await ctx.auth.validateInvite(inviteLink as string);
+        const admin = await ctx.user.validateInvite(inviteLink as string);
         if(admin){
             return res.status(200).json({status: true, admin: {firstName:admin.firstName}})
         }else{

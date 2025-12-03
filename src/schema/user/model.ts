@@ -111,6 +111,10 @@ export default class User extends BaseModel {
             }
         }
 
+        data.role = await this.context.role.repository.findOne({ where: { id: input.roleId } });
+        if(!data.role){
+            return this.formatErrors(GlobalError.RECORD_NOT_FOUND, 'Role not found');
+        }
         return { data, errors, errorMessage };
     }
 
@@ -127,7 +131,7 @@ export default class User extends BaseModel {
             let user = existingEntity || new UserEntity();
 
             user.companyId = input.companyId;
-            user.roleId = input.roleId;
+            user.roleId = data.role.id;
             user.firstName = input.firstName;
             user.middleName = input.middleName;
             user.lastName = input.lastName;
@@ -141,6 +145,8 @@ export default class User extends BaseModel {
             user.biometricUserId = input.biometricUserId;
             user.createdById = user.createdById ?? this.context.auth.id;
             user.lastUpdatedById = this.context.auth.id;
+            user.companyUuid = input.companyUuid;   
+
             user = await this.repository.save(user);
             
             return this.successResponse(user);

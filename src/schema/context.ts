@@ -1,5 +1,6 @@
 import UserModel from './user/model';
 import OtpModel from './otp/model';
+import { User as UserEntity } from '../database/entity/User';
 import { Transporter, createTransport } from 'nodemailer';
 import CountryModel from './country/model';
 import CityModel from './city/model';
@@ -19,11 +20,13 @@ import PaymentModel from './payment/model';
 import CompanyModel from './company/model';
 import TournamentRoundModel from './tournament-round/model';
 import TournamentRoundPlayerModel from './tournament-round-player/model';
+import User from './user/model';
 
 export default class Context {
     static instance:Context;
     otp: OtpModel;
-    auth: UserModel;
+    auth: UserEntity;
+    user: UserModel;
     city: CityModel;
     role: RoleModel;
     category: CategoryModel;
@@ -50,6 +53,7 @@ export default class Context {
     constructor(connection: any, schema: any, req?: any, auth?: any) {
         this.otp = new OtpModel(connection, this);
         this.auth = auth;
+        this.user = new UserModel(connection, this);
         this.city = new CityModel(connection, this);
         this.role = new RoleModel(connection, this);
         this.category = new CategoryModel(connection, this);
