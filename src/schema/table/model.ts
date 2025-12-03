@@ -126,8 +126,8 @@ export default class Table extends BaseModel {
             table.companyId = company.id;
             table.status = input.status || Status.ACTIVE;
             table.sortNo = input.sortNo;
-            table.createdById = table.createdById || this.context.user.id;
-            table.lastUpdatedById = this.context.user.id;
+            table.createdById = table.createdById || this.context.auth.id;
+            table.lastUpdatedById = this.context.auth.id;
 
             table = await this.repository.save(table);
 
@@ -176,7 +176,7 @@ export default class Table extends BaseModel {
 
             // Soft delete - set status to INACTIVE
             table.status = Status.INACTIVE;
-            table.lastUpdatedById = this.context.user.id;
+            table.lastUpdatedById = this.context.auth.id;
             await this.repository.save(table);
 
             return this.successResponse(true);

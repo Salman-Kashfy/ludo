@@ -169,7 +169,7 @@ export const userPermissions = async (req:Request, res:Response) => {
     }
 
     const ctx = Context.getInstance(connection,schema,req,req.user)
-    const permissions = await ctx.user.userPermissions(role)
+    const permissions = await ctx.auth.userPermissions(role)
 
     res.send({ status: true, message: 'Data fetched successfully!', data: permissions })
 }

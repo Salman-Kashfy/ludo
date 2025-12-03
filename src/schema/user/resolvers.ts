@@ -8,21 +8,21 @@ import Context from '../context';
 export default {
     Query: {
         user(parent: any, {uuid}:any, context:Context) {
-            return context.user.show(uuid);
+            return context.auth.show(uuid);
         },
         users(parent: any, { paging, params }:any, context:Context) {
-            return context.user.index(paging, params);
+            return context.auth.index(paging, params);
         },
     },
     Mutation: {
         createUser (parent: any, { input }: any, context: Context) {
-            return context.user.save(input);
+            return context.auth.save(input);
         },
         updateUser (parent: any, { input }: any, context: Context) {
-            return context.user.save(input);
+            return context.auth.save(input);
         },
         updateUserStatus(parent: any, { input }: any, context: Context) {
-            return context.user.updateStatus(input);
+            return context.auth.updateStatus(input);
         },
     },
     User: {

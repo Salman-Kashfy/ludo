@@ -23,7 +23,7 @@ import TournamentRoundPlayerModel from './tournament-round-player/model';
 export default class Context {
     static instance:Context;
     otp: OtpModel;
-    user: UserModel;
+    auth: UserModel;
     city: CityModel;
     role: RoleModel;
     category: CategoryModel;
@@ -39,17 +39,17 @@ export default class Context {
     invoice: InvoiceModel;
     payment: PaymentModel;
     company: CompanyModel;
-    userId: string;
     schema: any;
     country: CountryModel;
     permission: PermissionModel;
     rolePermission: RolePermissionModel;
     req: object;
     transporter:Transporter;
+    authId: string;
 
-    constructor(connection: any, schema: any, req?: any, user?: any) {
+    constructor(connection: any, schema: any, req?: any, auth?: any) {
         this.otp = new OtpModel(connection, this);
-        this.user = user;
+        this.auth = auth;
         this.city = new CityModel(connection, this);
         this.role = new RoleModel(connection, this);
         this.category = new CategoryModel(connection, this);
@@ -65,7 +65,7 @@ export default class Context {
         this.invoice = new InvoiceModel(connection, this);
         this.payment = new PaymentModel(connection, this);
         this.company = new CompanyModel(connection, this);
-        this.userId = user ? user.id : null;
+        this.authId = auth ? auth.id : null;
         this.schema = schema;
         this.country = new CountryModel(connection, this);
         this.permission = new PermissionModel(connection, this);
@@ -92,8 +92,8 @@ export default class Context {
         this.req = req
     }
 
-    setAuth(user:any){
-        this.user = user
-        this.userId = user.id
+    setAuth(auth:any){
+        this.auth = auth
+        this.authId = auth ? auth.id : null;
     }
 }

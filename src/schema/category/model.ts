@@ -105,8 +105,8 @@ export default class Category extends BaseModel {
                 category.name = input.name;
                 category.hourlyRate = input.hourlyRate;
                 category.companyId = company.id;
-                category.createdById = category.createdById || this.context.user.id;
-                category.lastUpdatedById = this.context.user.id;
+                category.createdById = category.createdById || this.context.auth.id;
+                category.lastUpdatedById = this.context.auth.id;
 
                 category = await transactionalEntityManager.save(category);
 
