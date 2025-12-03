@@ -19,7 +19,7 @@ export function registerDirective(schema: GraphQLSchema) {
                     if (disableAuthAccess) {
                         return resolve(source, args, context, info);
                     }
-                    if (!context.user) {
+                    if (!context.auth) {
                         throw new Error('Authentication required !');
                     }
                     return resolve(source, args, context, info);

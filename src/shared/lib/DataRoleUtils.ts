@@ -17,7 +17,7 @@ export function isAdmin(user: any) {
 }
 
 export function accessRulesByRoleHierarchy(ctx: Context, { companyId }: { companyId: number }): boolean {
-    const user: any = ctx.user;
+    const user: any = ctx.auth;
     if (!user) {
         console.error("accessRulesByRoleHierarchy: No user found in context");
         return false;
@@ -35,7 +35,7 @@ export function accessRulesByRoleHierarchy(ctx: Context, { companyId }: { compan
 }
 
 export function accessRulesByRoleHierarchyUuid(ctx: Context, { companyUuid }: { companyUuid: string }): boolean {
-    const user: any = ctx.user;
+    const user: any = ctx.auth;
     if (!user) {
         console.error("accessRulesByRoleHierarchyUuid: No user found in context");
         return false;
@@ -54,7 +54,7 @@ export function accessRulesByRoleHierarchyUuid(ctx: Context, { companyUuid }: { 
 
 export function addQueryBuilderFilters(ctx:Context, query:any, params:any, companyIdField:string = 'companyId') {
     try {
-        const user:any = ctx.user
+        const user:any = ctx.auth
         if (user.role.name === Roles.ADMIN) {
             return { query, params };
         }
@@ -71,7 +71,7 @@ export function addQueryBuilderFilters(ctx:Context, query:any, params:any, compa
 
 export function addQueryBuilderFiltersByUuid(ctx:Context, query:any, params:any, companyUuidField:string = 'companyUuid') {
     try {
-        const user:any = ctx.user
+        const user:any = ctx.auth
         if (user.role.name === Roles.ADMIN) {
             return { query, params };
         }
@@ -99,7 +99,7 @@ export async function addQueryBuilderFiltersForCompanies(
             return { query, params };
         }
 
-        const user = context.user;
+        const user = context.auth;
 
         // Check if role is an array or single object
         const userRole = Array.isArray(user.role) ? user.role[0] : user.role;

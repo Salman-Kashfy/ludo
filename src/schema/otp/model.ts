@@ -22,7 +22,7 @@ export default class Otp extends BaseModel {
      */
     async createOtp(input:CreateOtpInput) {
         const { channel, type, identifier } = input;
-        const user:User = await this.context.user.repository.findOne({
+        const user:User = await this.context.auth.repository.findOne({
             where: {email:identifier}
         })
         if(!user){
@@ -113,7 +113,7 @@ export default class Otp extends BaseModel {
         if(!isValidPassword(input.password)){
             return this.formatErrors([OtpError.WEAK_PASSWORD],'Password must have at least one uppercase letter, one lowercase letter, one number, and one special character')
         }
-        const user = await this.context.user.repository.findOneBy({id: otp.data.userId})
+        const user = await this.context.auth.repository.findOneBy({id: otp.data.userId})
         user.password = await hash(input.password, 10)
         await Promise.all([user.save(), this.markOtpAsUsed(input)])
         return this.successResponse({})

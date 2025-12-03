@@ -30,4 +30,9 @@ export const PERMISSIONS = {
         VIEW:   { ID: 18, NAME: 'payment:view' },
         DELETE: { ID: 19, NAME: 'payment:delete' },
     },
+    USER: {
+        VIEW:   { ID: 20, NAME: 'user:view' },
+        CREATE: { ID: 21, NAME: 'user:create' },
+        UPDATE: { ID: 22, NAME: 'user:update' },
+    },
 };

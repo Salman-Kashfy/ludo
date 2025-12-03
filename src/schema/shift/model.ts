@@ -76,8 +76,8 @@ export default class Shift extends BaseModel {
                 shift.days = input.days.map(day => day.toUpperCase());
                 shift.description = input.description;
                 shift.status = input.status || Status.ACTIVE;
-                shift.createdById = shift.createdById || this.context.userId;
-                shift.lastUpdatedById = this.context.userId;
+                shift.createdById = shift.createdById || this.context.authId;
+                shift.lastUpdatedById = this.context.authId;
                 await transactionalEntityManager.save(shift);
             });
 

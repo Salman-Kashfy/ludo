@@ -134,7 +134,7 @@ export default class TournamentPlayer extends BaseModel {
 
                 // Increment tournament playerCount
                 tournament.playerCount = (tournament.playerCount || 0) + 1;
-                tournament.lastUpdatedById = this.context.user.id;
+                tournament.lastUpdatedById = this.context.auth.id;
                 await transactionalEntityManager.save(tournament);
 
                 return savedTournamentPlayer;
