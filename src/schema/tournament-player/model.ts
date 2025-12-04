@@ -64,7 +64,6 @@ export default class TournamentPlayer extends BaseModel {
 
     async playerRegistration(input: { customerUuid: string, tournamentUuid: string, paymentMethod: PaymentMethodInput }) {
         const { customerUuid, tournamentUuid, paymentMethod } = input;
-
         try {
             // Validate customer exists
             const customer = await this.context.customer.repository.findOne({
@@ -126,6 +125,7 @@ export default class TournamentPlayer extends BaseModel {
                     amount: tournament.entryFee,
                     method: paymentMethodEnum,
                     status: PaymentStatus.SUCCESS,
+                    calculateTax: true, 
                 } as any);
 
                 if (!paymentResult || !paymentResult.status) {

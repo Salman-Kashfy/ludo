@@ -3,7 +3,7 @@ import connection from "../ormconfig";
 import { User as UserEntity } from "../database/entity/User";
 import { compare } from "bcrypt";
 import { sign, verify, decode } from "jsonwebtoken";
-import {jwtConfig, TEMP_DIR_PATH} from "../shared/config";
+import {jwtConfig, ROLES, TEMP_DIR_PATH} from "../shared/config";
 import ShortUniqueId from "short-unique-id";
 import RedisClient from "../database/redis";
 import {AuthenticationError} from "apollo-server-express";
@@ -51,6 +51,7 @@ export const userLogin = async (req:Request, res:Response) => {
             firstName: user.firstName,
             middleName: user.middleName,
             lastName: user.lastName,
+            companyUuid: user.role.name === ROLES.ADMIN.NAME ? '' : user.companyUuid,  
             role: { uuid: user.role.uuid, name: user.role.name },
             key, // country
         }

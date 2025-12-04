@@ -164,6 +164,7 @@ export default class TableSession extends BaseModel {
                     amount: categoryPrice.price,
                     method: input.paymentMethod.paymentScheme,
                     status: PaymentStatus.SUCCESS,
+                    calculateTax: true, 
                 });
 
                 if (!payment || !payment.status) {
@@ -300,6 +301,7 @@ export default class TableSession extends BaseModel {
                     amount: categoryPrice.price,
                     method: input.paymentMethod.paymentScheme,
                     status: PaymentStatus.SUCCESS,
+                    calculateTax: true, 
                 });
 
                 if (!payment || !payment.status) {

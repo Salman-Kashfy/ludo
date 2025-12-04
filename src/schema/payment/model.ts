@@ -207,13 +207,32 @@ export default class Payment extends BaseModel {
         input: PaymentPayload & { calculateTax?: boolean }
     ) {
         try {
+            // Ensure amount is numeric
+            const amountNum = Number(input.amount || 0);
+
             // Automatically calculate tax if requested
             if (input.calculateTax && input.method) {
                 const taxRate = this.getTaxRate(input.method);
-                const taxAmount = (input.amount || 0) * (taxRate / 100);
+
+                // numeric calculation
+                const taxAmountRaw = amountNum * (taxRate / 100);
+
+                // round to 2 decimals (keeps number type)
+                const taxAmount = Math.round(taxAmountRaw * 100) / 100;
+
+                const totalRaw = amountNum + taxAmount;
+                const totalAmount = Math.round(totalRaw * 100) / 100;
+
+                // assign numeric values back to input
                 input.taxRate = taxRate;
                 input.taxAmount = taxAmount;
-                input.totalAmount = (input.amount || 0) + taxAmount;
+                input.totalAmount = totalAmount;
+
+                // also ensure input.amount is stored as number
+                input.amount = amountNum;
+            } else {
+                // still coerce amount to number if calculateTax not requested
+                input.amount = amountNum;
             }
 
             const payment = transactionalEntityManager.create(this.repository.target, input);
