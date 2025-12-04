@@ -50,14 +50,17 @@ export interface TableSessionBillingInput {
     categoryPriceUuid: string
 }
 
-export interface PaymentPayload { 
-    customerId: number
-    invoiceId: string
-    amount: number
-    method: PaymentMethod
-    status: PaymentStatus
-    refundNote: string
-    refundedAt: string
+export interface PaymentPayload {
+    customerId: string;
+    invoiceId: string;
+    amount: number;
+    method: string;
+    status?: string;
+    refundNote?: string;
+    // Add tax-related fields
+    taxRate?: number;
+    taxAmount?: number;
+    totalAmount?: number;
 }
 
 export interface PaymentMethodInput {
