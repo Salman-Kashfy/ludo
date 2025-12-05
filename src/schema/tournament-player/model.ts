@@ -20,6 +20,38 @@ export default class TournamentPlayer extends BaseModel {
         this.customerRepository = connection.getRepository(CustomerEntity);
     }
 
+    async index(tournamentUuid: string) {
+        try {
+            const tournament = await this.context.tournament.repository.findOne({
+                where: { uuid: tournamentUuid },
+                relations: ['company'],
+            });
+
+            if (!tournament) {
+                return this.formatErrors([GlobalError.RECORD_NOT_FOUND], 'Tournament not found');
+            }
+
+            if (!(await accessRulesByRoleHierarchy(this.context, { companyId: tournament.companyId }))) {
+                return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
+            }
+
+            const tournamentPlayers = await this.repository.find({
+                where: { tournamentId: tournament.id },
+                relations: ['customer', 'table'],
+            });
+
+            return {
+                status: true,
+                list: tournamentPlayers,
+                errors: null,
+                errorMessage: null,
+            };
+        } catch (error: any) {
+            return this.formatErrors([GlobalError.INTERNAL_SERVER_ERROR], error.message);
+        }
+    }
+
+
     async playerRegistrationBill(params: { customerUuid: string, tournamentUuid: string }) {
         const { customerUuid, tournamentUuid } = params;
 
