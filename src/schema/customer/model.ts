@@ -6,7 +6,7 @@ import { GlobalError } from "../root/enum";
 import { isEmpty } from "lodash";
 import { PagingInterface } from "../../interfaces";
 import { Brackets } from 'typeorm';
-import { addQueryBuilderFiltersByUuid, accessRulesByRoleHierarchyUuid } from '../../shared/lib/DataRoleUtils';
+import { addQueryBuilderFiltersByUuid, accessRulesByRoleHierarchyUuid, addQueryBuilderFilters } from '../../shared/lib/DataRoleUtils';
 
 export default class Customer extends BaseModel {
     repository: any;
@@ -19,7 +19,7 @@ export default class Customer extends BaseModel {
 
     async index(paging: PagingInterface, params: CustomerFilter) {
         const _query = this.repository.createQueryBuilder('c');
-        const { query }:any = addQueryBuilderFiltersByUuid(this.context, _query, params);
+        const { query }:any = addQueryBuilderFilters(this.context, _query, params);
 
         // Remove leading zeros from search text for phone number searches
         const searchText = params?.searchText?.replace(/^0+/, '');
@@ -31,6 +31,7 @@ export default class Customer extends BaseModel {
                 searchText: `%${searchText}%`
             });
         }
+        // .setParameters(params)
         query.orderBy('c.id', 'DESC');
 
         return await this.paginator(query, paging);
