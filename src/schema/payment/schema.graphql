@@ -21,6 +21,13 @@ type Payment {
     refundedAt: String
     createdAt: String!
     updatedAt: String!
+    taxRate: Float
+    taxAmount: Float
+    totalAmount: Float 
+    tournamentId: Int
+    tableSessionId: Int
+
+    
     
     # Relations
     customer: Customer!

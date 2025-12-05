@@ -2,8 +2,8 @@ import Context from '../context';
 
 export default {
     Query: {
-        tournamentPlayers(_: any, { tournamentUuid }: any, context: Context) {
-            return context.tournamentPlayer.index(tournamentUuid);
+        tournamentPlayers(_: any, { params }: any, context: Context) {
+            return context.tournamentPlayer.index(params);
         },
         playerRegistrationBill(_: any, { params }: any, context: Context) {
             return context.tournamentPlayer.playerRegistrationBill(params);
