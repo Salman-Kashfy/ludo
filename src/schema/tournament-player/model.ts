@@ -20,10 +20,10 @@ export default class TournamentPlayer extends BaseModel {
         this.customerRepository = connection.getRepository(CustomerEntity);
     }
 
-    async index(tournamentUuid: string) {
+    async index(params: { tournamentUuid: string }) {
         try {
             const tournament = await this.context.tournament.repository.findOne({
-                where: { uuid: tournamentUuid },
+                where: { uuid: params.tournamentUuid },
                 relations: ['company'],
             });
 
@@ -37,8 +37,10 @@ export default class TournamentPlayer extends BaseModel {
 
             const tournamentPlayers = await this.repository.find({
                 where: { tournamentId: tournament.id },
-                relations: ['customer', 'table'],
+                relations: ['customer'],
             });
+
+            console.log(tournamentPlayers, tournament.id)
 
             return {
                 status: true,

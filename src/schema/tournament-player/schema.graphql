@@ -13,6 +13,7 @@ type TournamentPlayer {
 #------------------------
 extend type Query {
     playerRegistrationBill(params: PlayerRegistrationBillInput!): PlayerRegistrationBillPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
+    tournamentPlayers(params: TournamentPlayerFilters!): TournamentPlayersPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
 }
 
 #------------------------
@@ -64,4 +65,9 @@ input TournamentUnregisteredCustomersInput {
     tournamentUuid: ID!
     searchText: String
     paging: PaginatorInput
+}
+
+
+input TournamentPlayerFilters {
+    tournamentUuid: ID!
 }

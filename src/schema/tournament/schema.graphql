@@ -32,7 +32,6 @@ enum TournamentStatus {
 # Queries
 #------------------------
 extend type Query {
-    tournamentPlayers(tournamentUuid: ID!): TournamentPlayersPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
     tournament(uuid: ID!): TournamentPayload @requireAuth @requirePermissions(permissions: ["tournament:view"])
     tournaments(paging: PaginatorInput, params: TournamentFilter): TournamentsPayload! @requireAuth @requirePermissions(permissions: ["tournament:view"])
 }
