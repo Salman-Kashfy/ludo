@@ -40,8 +40,6 @@ export default class TournamentPlayer extends BaseModel {
                 relations: ['customer'],
             });
 
-            console.log(tournamentPlayers, tournament.id)
-
             return {
                 status: true,
                 list: tournamentPlayers,
