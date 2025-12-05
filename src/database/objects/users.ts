@@ -18,7 +18,7 @@ export const users = async (input:UserInput) => [
         email: 'admin@corefluence.com',
         password: input.passwordHash,
         countryId: input.countryId,
-        companyId: input.companyId,
+        companyId: null,
         companyUuid: input.companyUuid,
         phoneCode: '92',
         phoneNumber: '3332258331',

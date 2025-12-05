@@ -45,6 +45,7 @@ input TournamentRoundPlayerFilter {
     tableId: Int
     customerId: Int
     winnersOnly: Boolean
+    tournamentUuid: ID!
 }
 
 input UpdateTournamentRoundWinnersInput {

@@ -84,6 +84,7 @@ input CreateUserInput {
     gender: Gender
     photo: String
     biometricUserId: String
+    companyUuid: String
 }
 
 input UpdateUserInput {
@@ -100,6 +101,7 @@ input UpdateUserInput {
     gender: Gender
     photo: String
     biometricUserId: String
+    companyUuid: String
 }
 
 input UpdateUserStatusInput {

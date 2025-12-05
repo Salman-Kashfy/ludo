@@ -40,6 +40,15 @@ import {
   
     @Column({ type: 'numeric', precision: 10, scale: 2 })
     amount: number;
+
+    @Column({ type: 'numeric', precision: 10, scale: 2, default: 0 })
+    taxRate: number;
+
+    @Column({ type: 'numeric', precision: 10, scale: 2, default: 0 })
+    taxAmount: number;
+
+    @Column({ type: 'numeric', precision: 10, scale: 2, default: 0 })
+    totalAmount: number;
   
     @Column({
       type: 'enum',

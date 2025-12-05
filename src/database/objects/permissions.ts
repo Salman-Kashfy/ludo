@@ -77,4 +77,17 @@ export const permissions = () => [
         id:PERMISSIONS.PAYMENT.DELETE.ID,
         name:PERMISSIONS.PAYMENT.DELETE.NAME
     },
+    // User management permissions
+    {
+        id:PERMISSIONS.USER.VIEW.ID,
+        name:PERMISSIONS.USER.VIEW.NAME
+    },
+    {
+        id:PERMISSIONS.USER.CREATE.ID,
+        name:PERMISSIONS.USER.CREATE.NAME
+    },
+    {
+        id:PERMISSIONS.USER.UPDATE.ID,
+        name:PERMISSIONS.USER.UPDATE.NAME
+    },
 ]

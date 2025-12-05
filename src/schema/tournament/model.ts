@@ -169,8 +169,8 @@ export default class Tournament extends BaseModel {
             tournament.status = input.status;
             tournament.companyId = company.id;
             tournament.categoryId = category.id;
-            tournament.createdById = tournament.createdById || this.context.user.id;
-            tournament.lastUpdatedById = this.context.user.id;
+            tournament.createdById = tournament.createdById || this.context.auth.id;
+            tournament.lastUpdatedById = this.context.auth.id;
 
             const saved = await this.repository.save(tournament);
             return this.successResponse(saved);
@@ -194,7 +194,7 @@ export default class Tournament extends BaseModel {
             }
 
             tournament.status = Status.INACTIVE;
-            tournament.lastUpdatedById = this.context.user.id;
+            tournament.lastUpdatedById = this.context.auth.id;
             await this.repository.save(tournament);
 
             return this.successResponse(true);

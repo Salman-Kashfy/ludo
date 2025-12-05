@@ -21,7 +21,10 @@ export default class User extends BaseModel {
     }
 
     async show(uuid: string) {
-        let _query = this.repository.createQueryBuilder('user')
+        // Load user along with its role relation so GraphQL User.role (non-null) is always populated
+        let _query = this.repository
+            .createQueryBuilder('user')
+            .leftJoinAndSelect('user.role', 'role');
         const { query }:any = await addQueryBuilderFilters(this.context, _query, {}, 'companyId');
         if (query) {
             query.andWhere('user.uuid = :uuid', { uuid });
@@ -34,7 +37,10 @@ export default class User extends BaseModel {
     }
 
     async index(paging: PagingInterface, params: UserFilter) {
-        let _query = this.repository.createQueryBuilder('u.')
+        // Load list of users with their roles to satisfy non-nullable User.role in GraphQL schema
+        let _query = this.repository
+            .createQueryBuilder('u')
+            .leftJoinAndSelect('u.role', 'role');
         let { query }:any = addQueryBuilderFilters(this.context, _query, {}, 'companyId');
         query = this.resolveParamsToFilters(query, params);
         return this.paginator(query, paging);
@@ -59,7 +65,7 @@ export default class User extends BaseModel {
             params.searchText = originalSearchText
         }
         if (params.companyId) {
-            query.andWhere('user.companyId = :companyId', { companyId: params.companyId });
+            query.andWhere('u.companyId = :companyId', { companyId: params.companyId });
         }
         query.setParameters(params);
         return query;
@@ -93,18 +99,22 @@ export default class User extends BaseModel {
                 data.existingEntity = user.data
                 const email = await this.repository.findOneBy({ email: input.email.toLowerCase(), id: Not(user.data.id) })
                 if(email){
-                    return this.formatErrors([GlobalError.ALREADY_EXISTS], 'Email already registered.')
+                    return this.formatErrors(GlobalError.ALREADY_EXISTS, 'Email already registered.')
                 }
             }else{
-                return this.formatErrors([GlobalError.EXCEPTION], 'User not found')
+                return this.formatErrors(GlobalError.EXCEPTION, 'User not found')
             }
         }else{
             const email = await this.repository.findOneBy({ email: input.email.toLowerCase() })
             if(email){
-                return this.formatErrors([GlobalError.ALREADY_EXISTS], 'Email already registered.')
+                return this.formatErrors(GlobalError.ALREADY_EXISTS, 'Email already registered.')
             }
         }
 
+        data.role = await this.context.role.repository.findOne({ where: { id: input.roleId } });
+        if(!data.role){
+            return this.formatErrors(GlobalError.RECORD_NOT_FOUND, 'Role not found');
+        }
         return { data, errors, errorMessage };
     }
 
@@ -117,38 +127,35 @@ export default class User extends BaseModel {
             if (!isEmpty(errors)) {
                 return this.formatErrors(errors, errorMessage);
             }
+            const { existingEntity } = data;
+            let user = existingEntity || new UserEntity();
 
-            const user = data.existingEntity || new UserEntity();
-            const transaction = await this.connection.manager.transaction(async (transactionalEntityManager: any) => {
-                user.roleId = input.roleId;
-                user.firstName = input.firstName;
-                user.middleName = input.middleName;
-                user.lastName = input.lastName;
-                user.email = input.email;
-                user.password = input.password ? await hash(input.password, 10) : user.password;
-                user.countryId = input.countryId;
-                user.companyUuid = input.companyUuid;
-                user.phoneCode = input.phoneCode;
-                user.phoneNumber = input.phoneNumber;
-                user.gender = input.gender;
-                user.photo = input.photo;
-                user.biometricUserId = input.biometricUserId;
-                user.createdById = user.createdById || this.context.auth.id;
-                user.lastUpdatedById = this.context.auth.id;
+            user.companyId = input.companyId;
+            user.roleId = data.role.id;
+            user.firstName = input.firstName;
+            user.middleName = input.middleName;
+            user.lastName = input.lastName;
+            user.email = input.email;
+            user.password = input.password ? await hash(input.password, 10) : user.password;
+            user.countryId = input.countryId;
+            user.phoneCode = input.phoneCode;
+            user.phoneNumber = input.phoneNumber;
+            user.gender = input.gender;
+            user.photo = input.photo;
+            user.biometricUserId = input.biometricUserId;
+            user.createdById = user.createdById ?? this.context.auth.id;
+            user.lastUpdatedById = this.context.auth.id;
+            user.companyUuid = input.companyUuid;   
 
-                await transactionalEntityManager.save(user);
-            });
-
-            if (transaction && transaction.error && transaction.error.length > 0) {
-                console.log(transaction.error);
-                return this.formatErrors([GlobalError.INTERNAL_SERVER_ERROR], transaction.error);
-            }
+            user = await this.repository.save(user);
+            
             return this.successResponse(user);
         } catch (e: any) {
             console.log(e);
             return this.formatErrors([GlobalError.INTERNAL_SERVER_ERROR], e.message);
         }
     }
+
 
     async updateStatus(input: any) {
         const user = await this.show(input.uuid);

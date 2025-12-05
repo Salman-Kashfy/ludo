@@ -77,9 +77,12 @@ type SavePaymentPayload {
 }
 
 input PaymentMethodInput {
-  paymentScheme: PaymentScheme!
-  name: String
-  sourceId: String
+    paymentScheme: PaymentScheme!
+    name: String
+    sourceId: String
+    taxRate: Float                  # optional, backend can compute if needed
+    taxAmount: Float                # optional, backend can compute if needed
+    totalAmount: Float 
 }
 
 enum PaymentScheme {

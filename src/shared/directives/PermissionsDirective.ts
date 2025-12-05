@@ -21,7 +21,7 @@ export function registerDirective(schema: GraphQLSchema) {
                             return resolve(source, args, context, info);
                         }
 
-                        const role = context.user.role
+                        const role = context.auth.role
                         permissions = permissions.filter((el: string) => el).map((el: string) => el.toLowerCase().trim());
 
                         if(role.name !== Roles.ADMIN){

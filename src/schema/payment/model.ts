@@ -109,12 +109,12 @@ export default class Payment extends BaseModel {
             const refundedSoFar = parseFloat(totalRefunded?.total || '0');
             const refundAmount = input.refundAmount || data.originalPayment.amount;
             const remainingAmount = data.originalPayment.amount - refundedSoFar;
-            
+
             if (refundAmount > remainingAmount) {
                 errors.push(GlobalError.INVALID_INPUT);
                 errorMessage = `Refund amount (${refundAmount}) cannot exceed remaining amount (${remainingAmount})`;
             }
-            
+
             if (refundAmount <= 0) {
                 errors.push(GlobalError.INVALID_INPUT);
                 errorMessage = 'Refund amount must be greater than 0';
@@ -202,8 +202,39 @@ export default class Payment extends BaseModel {
         }
     }
 
-    async createPayment(transactionalEntityManager: any, input: PaymentPayload) {
+    async createPayment(
+        transactionalEntityManager: any,
+        input: PaymentPayload & { calculateTax?: boolean }
+    ) {
         try {
+            // Ensure amount is numeric
+            const amountNum = Number(input.amount || 0);
+
+            // Automatically calculate tax if requested
+            if (input.calculateTax && input.method) {
+                const taxRate = this.getTaxRate(input.method);
+
+                // numeric calculation
+                const taxAmountRaw = amountNum * (taxRate / 100);
+
+                // round to 2 decimals (keeps number type)
+                const taxAmount = Math.round(taxAmountRaw * 100) / 100;
+
+                const totalRaw = amountNum + taxAmount;
+                const totalAmount = Math.round(totalRaw * 100) / 100;
+
+                // assign numeric values back to input
+                input.taxRate = taxRate;
+                input.taxAmount = taxAmount;
+                input.totalAmount = totalAmount;
+
+                // also ensure input.amount is stored as number
+                input.amount = amountNum;
+            } else {
+                // still coerce amount to number if calculateTax not requested
+                input.amount = amountNum;
+            }
+
             const payment = transactionalEntityManager.create(this.repository.target, input);
             const data = await transactionalEntityManager.save(payment);
             return this.successResponse(data);
@@ -212,9 +243,21 @@ export default class Payment extends BaseModel {
         }
     }
 
+    // Helper function for tax rates
+    getTaxRate(paymentMethod: string) {
+        switch (paymentMethod) {
+            case 'CARD':
+                return 8;
+            case 'CASH':
+            case 'BANK_TRANSFER':
+                return 15;
+            default:
+                return 0;
+        }
+    }
+
     async tableSessionBilling(input: TableSessionBillingInput) {
         try {
-           
             const table = await this.context.table.repository.findOne({
                 where: { uuid: input.tableUuid },
                 relations: ['category']
@@ -232,6 +275,12 @@ export default class Payment extends BaseModel {
                 return this.formatErrors(GlobalError.RECORD_NOT_FOUND, 'Category price not found');
             }
 
+            // Example tax calculation (15% by default)
+            const taxRate = 15;
+            const subtotal = categoryPrice.price;
+            const taxAmount = subtotal * (taxRate / 100);
+            const totalAmount = subtotal + taxAmount;
+
             const billingPreview = {
                 table: {
                     name: table.name,
@@ -242,8 +291,11 @@ export default class Payment extends BaseModel {
                 billing: {
                     unit: categoryPrice.unit,
                     duration: categoryPrice.duration,
-                    totalAmount:categoryPrice.price,
                     currencyName: categoryPrice.currencyName,
+                    subtotal,
+                    taxRate,
+                    taxAmount,
+                    totalAmount,
                 }
             };
 
@@ -252,4 +304,5 @@ export default class Payment extends BaseModel {
             return this.formatErrors(GlobalError.INTERNAL_SERVER_ERROR, error.message);
         }
     }
+
 }
