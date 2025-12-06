@@ -22,10 +22,19 @@ export default class Payment extends BaseModel {
             .leftJoinAndSelect('p.invoice', 'invoice');
 
         if (!isEmpty(params.searchText)) {
-            _query.andWhere('(customer.firstName ILIKE :searchText OR customer.lastName ILIKE :searchText)', {
-                searchText: `%${params.searchText}%`
-            });
+            _query.andWhere(
+                `(
+                        customer.firstName ILIKE :searchText
+                        OR customer.lastName ILIKE :searchText
+                        OR customer.phone_code ILIKE :searchText
+                        OR customer.phone_number ILIKE :searchText
+                    )`,
+                {
+                    searchText: `%${params.searchText}%`
+                }
+            );
         }
+
         if (!isEmpty(params.customerId)) {
             _query.andWhere('p.customerId = :customerId', { customerId: params.customerId });
         }

@@ -1,6 +1,7 @@
 export enum Status {
     ACTIVE = 'ACTIVE',
     INACTIVE = 'INACTIVE',
+    SUCCESS = 'SUCCESS'
 }
 
 export enum GenderType {
