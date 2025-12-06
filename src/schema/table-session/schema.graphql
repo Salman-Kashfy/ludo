@@ -77,6 +77,10 @@ input RechargeTableSessionInput {
     tableSessionUuid: ID!
     categoryPriceUuid: ID!
     paymentMethod:PaymentMethodInput!
+
+    taxRate: Float
+    taxAmount: Float
+    totalAmount: Float
 }
 
 input MarkCompletedInput {
