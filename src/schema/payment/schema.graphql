@@ -47,8 +47,13 @@ extend type Mutation {
 input PaymentFilter {
     searchText: String
     customerId: Int
-    status: PaymentStatus
-    method: PaymentMethod
+    status: String
+    method: String
+    tournamentUuid: String
+
+    companyUuid: String
+    startDate: String
+    endDate: String
 }
 
 type PaymentPayload {

@@ -22,10 +22,19 @@ export default class Payment extends BaseModel {
             .leftJoinAndSelect('p.invoice', 'invoice');
 
         if (!isEmpty(params.searchText)) {
-            _query.andWhere('(customer.firstName ILIKE :searchText OR customer.lastName ILIKE :searchText)', {
-                searchText: `%${params.searchText}%`
-            });
+            _query.andWhere(
+                `(
+                        customer.firstName ILIKE :searchText
+                        OR customer.lastName ILIKE :searchText
+                        OR customer.phone_code ILIKE :searchText
+                        OR customer.phone_number ILIKE :searchText
+                    )`,
+                {
+                    searchText: `%${params.searchText}%`
+                }
+            );
         }
+
         if (!isEmpty(params.customerId)) {
             _query.andWhere('p.customerId = :customerId', { customerId: params.customerId });
         }
@@ -34,6 +43,19 @@ export default class Payment extends BaseModel {
         }
         if (!isEmpty(params.method)) {
             _query.andWhere('p.method = :method', { method: params.method });
+        }
+
+        // if (params.companyUuid) {
+        //     _query.andWhere("customer.company_uuid = :companyUuid", {
+        //         companyUuid: params.companyUuid
+        //     });
+        // }
+        
+        if (params.startDate && params.endDate) {
+            _query.andWhere("p.createdAt BETWEEN :startDate AND :endDate", {
+                startDate: params.startDate,
+                endDate: params.endDate
+            });
         }
 
         _query.orderBy('p.createdAt', 'DESC');
