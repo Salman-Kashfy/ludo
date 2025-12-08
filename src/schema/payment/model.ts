@@ -45,6 +45,19 @@ export default class Payment extends BaseModel {
             _query.andWhere('p.method = :method', { method: params.method });
         }
 
+        // if (params.companyUuid) {
+        //     _query.andWhere("customer.company_uuid = :companyUuid", {
+        //         companyUuid: params.companyUuid
+        //     });
+        // }
+        
+        if (params.startDate && params.endDate) {
+            _query.andWhere("p.createdAt BETWEEN :startDate AND :endDate", {
+                startDate: params.startDate,
+                endDate: params.endDate
+            });
+        }
+
         _query.orderBy('p.createdAt', 'DESC');
 
         return await this.paginator(_query, paging);
