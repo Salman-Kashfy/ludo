@@ -12,6 +12,8 @@ import { PaymentStatus } from '../payment/types';
 import { accessRulesByRoleHierarchyUuid, accessRulesByRoleHierarchy } from '../../shared/lib/DataRoleUtils';
 import moment from 'moment';
 import { TableStatus } from '../table/types';
+import whatsappQueue from '../../lib/whatsappQueue';
+import { NotificationHooks } from '../../services/notificationHooks';
 
 export default class TableSession extends BaseModel {
     repository: any;
@@ -182,6 +184,26 @@ export default class TableSession extends BaseModel {
                 return this.formatErrors([GlobalError.EXCEPTION], transaction.error);
             }
 
+            // Send WhatsApp notification using the new notification service
+            try {
+                await NotificationHooks.onTableBooked({
+                    customer: data.customer,
+                    table: data.table,
+                    categoryPrice: categoryPrice,
+                    session: transaction
+                });
+            } catch (notificationError) {
+                console.error('Failed to send table booking notification:', notificationError);
+                // Don't fail the booking if notification fails
+            }
+
+            // Keep the old notification for backward compatibility (can be removed later)
+            const to = `${data.customer.phoneCode || ''}${data.customer.phoneNumber || ''}`.replace(/\D/g, '');
+            const text = `Table booking confirmed: ${data.table.name}. Duration ${categoryPrice.duration} ${categoryPrice.unit}.`;
+            if (to) {
+                try { await whatsappQueue.add({ to, text }); } catch (_) {}
+            }
+
             return this.successResponse(transaction);
         } catch (error: any) {
             console.log('error: ', error);
@@ -228,6 +250,26 @@ export default class TableSession extends BaseModel {
                 startTime.add(session.freeMins, 'minutes')
             }
             savedSession.startTime = startTime.toISOString()
+
+            // Send session started notification
+            try {
+                // Get customer and table data for notification
+                const sessionWithRelations = await this.repository.findOne({
+                    where: { id: savedSession.id },
+                    relations: ['customer', 'table']
+                });
+
+                if (sessionWithRelations) {
+                    await NotificationHooks.onTableSessionStarted({
+                        customer: sessionWithRelations.customer,
+                        table: sessionWithRelations.table,
+                        session: savedSession
+                    });
+                }
+            } catch (notificationError) {
+                console.error('Failed to send session started notification:', notificationError);
+                // Don't fail the session start if notification fails
+            }
     
             return this.successResponse(savedSession);
         } catch (error: any) {

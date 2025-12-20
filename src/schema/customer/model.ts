@@ -7,6 +7,7 @@ import { isEmpty } from "lodash";
 import { PagingInterface } from "../../interfaces";
 import { Brackets } from 'typeorm';
 import { addQueryBuilderFiltersByUuid, accessRulesByRoleHierarchyUuid, addQueryBuilderFilters } from '../../shared/lib/DataRoleUtils';
+import { NotificationHooks } from '../../services/notificationHooks';
 
 export default class Customer extends BaseModel {
     repository: any;
@@ -96,6 +97,7 @@ export default class Customer extends BaseModel {
         }
 
         try {
+            const isNewCustomer = !data.existingEntity;
             const customer: CustomerEntity = data.existingEntity || new CustomerEntity();
             customer.firstName = input.firstName;
             customer.lastName = input.lastName;
@@ -103,9 +105,19 @@ export default class Customer extends BaseModel {
             customer.phoneNumber = input.phoneNumber;
             customer.companyId = data.company.id;
 
-            await this.repository.save(customer);
+            const savedCustomer = await this.repository.save(customer);
 
-            return this.successResponse(customer);
+            // Send welcome notification for new customers
+            if (isNewCustomer && savedCustomer.phoneNumber) {
+                try {
+                    await NotificationHooks.onCustomerRegistered(savedCustomer);
+                } catch (notificationError) {
+                    console.error('Failed to send registration notification:', notificationError);
+                    // Don't fail the registration if notification fails
+                }
+            }
+
+            return this.successResponse(savedCustomer);
         } catch (error: any) {
             return this.formatErrors([GlobalError.INTERNAL_SERVER_ERROR], error.message);
         }
