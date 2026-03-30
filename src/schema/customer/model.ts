@@ -62,8 +62,10 @@ export default class Customer extends BaseModel {
     async saveValidate(input: CustomerInput) {
         let errors: any = [], errorMessage = null, data: any = {};
 
-        if (!(await accessRulesByRoleHierarchyUuid(this.context, { companyUuid: input.companyUuid }))) {
-            return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
+        if (this.context.auth) {
+            if (!(await accessRulesByRoleHierarchyUuid(this.context, { companyUuid: input.companyUuid }))) {
+                return this.formatErrors([GlobalError.NOT_ALLOWED], 'Permission denied');
+            }
         }
 
         data.company = await this.context.company.repository.findOne({ where: { uuid: input.companyUuid } });
@@ -104,6 +106,7 @@ export default class Customer extends BaseModel {
             customer.phoneCode = input.phoneCode;
             customer.phoneNumber = input.phoneNumber;
             customer.companyId = data.company.id;
+            customer.dob = input.dob ? new Date(`${input.dob}T00:00:00`) : null;
 
             const savedCustomer = await this.repository.save(customer);
 
@@ -118,6 +121,18 @@ export default class Customer extends BaseModel {
             }
 
             return this.successResponse(savedCustomer);
+        } catch (error: any) {
+            return this.formatErrors([GlobalError.INTERNAL_SERVER_ERROR], error.message);
+        }
+    }
+
+    // Public (unauthenticated) registration. Does not require the caller to be authenticated,
+    // but still ties the customer to an existing company.
+    async register(input: CustomerInput) {
+        try {
+           
+            return this.save(input);
+
         } catch (error: any) {
             return this.formatErrors([GlobalError.INTERNAL_SERVER_ERROR], error.message);
         }

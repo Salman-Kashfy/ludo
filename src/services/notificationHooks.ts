@@ -1,4 +1,7 @@
 import { whatsappNotificationService } from './whatsappNotificationService';
+import { fcmNotificationService } from './fcmNotificationService';
+import { getConnection } from 'typeorm';
+import { CustomerDevice } from '../database/entity/CustomerDevice';
 
 /**
  * Notification hooks to be called from your models
@@ -38,6 +41,7 @@ export class NotificationHooks {
         try {
             console.log(`Triggering table booking notification for customer: ${bookingData.customer.uuid}`);
             
+            // Send WhatsApp notification
             await whatsappNotificationService.sendTableBookingConfirmation({
                 customer: {
                     phoneCode: bookingData.customer.phoneCode,
@@ -56,6 +60,39 @@ export class NotificationHooks {
                 },
                 sessionId: bookingData.session.uuid
             });
+
+            // Send FCM push notification
+            try {
+                // Use the context model to fetch customer devices (including FCM tokens)
+                const customerDevices = await getConnection().getRepository(CustomerDevice).find({ where: { customerId: bookingData.customer.id } });
+
+                if (customerDevices && customerDevices.length > 0) {
+                    const fcmTokens = customerDevices
+                        .map((device: any) => device.fcmToken)
+                        .filter((token: any) => token);
+
+                    if (fcmTokens.length > 0) {
+                        const title = '🎉 Table Booked!';
+                        const body = `Your booking for ${bookingData.table.name} is confirmed!`;
+                        const data = {
+                            tableUuid: bookingData.table.uuid,
+                            sessionId: bookingData.session.uuid,
+                            tableName: bookingData.table.name,
+                            type: 'TABLE_BOOKED'
+                        };
+
+                        await fcmNotificationService.sendToMultipleDevices(
+                            fcmTokens,
+                            title,
+                            body,
+                            data
+                        );
+                    }
+                }
+            } catch (fcmError) {
+                console.warn('Failed to send FCM notification:', fcmError);
+                // Don't fail the booking - just log and continue
+            }
         } catch (error) {
             console.error('Error in onTableBooked hook:', error);
         }

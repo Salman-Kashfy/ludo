@@ -37,7 +37,7 @@ const corsOptions = {
     credentials: true
 };
 app.use(cors(corsOptions));
-const port = process.env.NODE_PORT || 8080;
+const port = process.env.NODE_PORT || 8000;
 const prefix = 'api';
 
 /**
@@ -48,9 +48,14 @@ const setupAuthContext = async (connection: any, schema: any, req: any) => {
     let auth
     if (disableAuthAccess) {
         auth = getFakeAuth()
-    }else{
-        const { user }: any = await handleAuth({ req });
-        auth = user
+    } else {
+        try {
+            const { user }: any = await handleAuth({ req });
+            auth = user
+        } catch (err) {
+            // For public GraphQL operations, absence/invalidity of token should not block context creation.
+            auth = null
+        }
     }
     if(!authContext){
         authContext =  Context.getInstance(connection, schema, req, auth);
@@ -109,9 +114,14 @@ declare module 'express' {
             introspection: !disableGraphqlIntrospection,
             async context({ req }) {
                 if(authContext){
-                    const { user }: any = await handleAuth({ req });
-                    authContext.setReq(req)
-                    authContext.setAuth(user)
+                    try {
+                        const { user }: any = await handleAuth({ req });
+                        authContext.setReq(req)
+                        authContext.setAuth(user)
+                    } catch (err) {
+                        authContext.setReq(req)
+                        authContext.setAuth(null)
+                    }
                 }
                 const ctx = authContext || await setupAuthContext(connection, schema, req);
                 ctx.req = req;
@@ -123,7 +133,7 @@ declare module 'express' {
         * Kickoff apollo and express server.
         * */
         await server.start();
-        server.applyMiddleware({ app, path: '/graphql', cors: { origin: allowedOrigins, credentials: true } });
+        server.applyMiddleware({ app, path: '/api/graphql', cors: { origin: allowedOrigins, credentials: true } });
         if(process.env.NODE_HOST?.indexOf('https') !== -1 && process.env.NODE_ENV === NODE_ENV.local){
             const sslOptions = {
                 key: fs.readFileSync(process.env.SSL_PRIVATE_KEY || '' ),
