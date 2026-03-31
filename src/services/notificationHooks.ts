@@ -1,6 +1,6 @@
 import { whatsappNotificationService } from './whatsappNotificationService';
 import { fcmNotificationService } from './fcmNotificationService';
-import { getConnection } from 'typeorm';
+import { getConnection, getConnectionManager } from 'typeorm';
 import { CustomerDevice } from '../database/entity/CustomerDevice';
 
 /**
@@ -64,7 +64,18 @@ export class NotificationHooks {
             // Send FCM push notification
             try {
                 // Use the context model to fetch customer devices (including FCM tokens)
-                const customerDevices = await getConnection().getRepository(CustomerDevice).find({ where: { customerId: bookingData.customer.id } });
+                let customerDevices: any[] = [];
+                try {
+                    const connection = getConnectionManager().has('default') && getConnectionManager().get('default');
+                    if (connection && connection.isConnected) {
+                        customerDevices = await connection.getRepository(CustomerDevice).find({ where: { customerId: bookingData.customer.id } });
+                    } else if (getConnectionManager().has('default')) {
+                        const conn = getConnection();
+                        customerDevices = await conn.getRepository(CustomerDevice).find({ where: { customerId: bookingData.customer.id } });
+                    }
+                } catch (innerErr: any) {
+                    console.warn('⚠️ NotificationHooks: cannot read customer devices due to connection state:', innerErr?.message || innerErr);
+                }
 
                 if (customerDevices && customerDevices.length > 0) {
                     const fcmTokens = customerDevices

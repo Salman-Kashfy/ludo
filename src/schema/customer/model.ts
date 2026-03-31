@@ -130,9 +130,27 @@ export default class Customer extends BaseModel {
     // but still ties the customer to an existing company.
     async register(input: CustomerInput) {
         try {
-           
-            return this.save(input);
+            const response: any = await this.save(input);
 
+            if (
+                response?.status &&
+                response?.data?.uuid &&
+                input.deviceToken &&
+                input.deviceType
+            ) {
+                try {
+                    await this.context.customerDevice.save({
+                        customerUuid: response.data.uuid,
+                        deviceToken: input.deviceToken,
+                        deviceType: input.deviceType,
+                        fcmToken: input.fcmToken || undefined
+                    });
+                } catch (deviceError) {
+                    console.error('Failed to save customer device during registration:', deviceError);
+                }
+            }
+
+            return response;
         } catch (error: any) {
             return this.formatErrors([GlobalError.INTERNAL_SERVER_ERROR], error.message);
         }

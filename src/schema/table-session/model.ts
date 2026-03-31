@@ -136,6 +136,10 @@ export default class TableSession extends BaseModel {
             return this.formatErrors([GlobalError.ALREADY_EXISTS], "Table already has a booked session");
         }
 
+        if (input.personCount && (!Number.isInteger(input.personCount) || input.personCount < 1)) {
+            return this.formatErrors([GlobalError.INVALID_INPUT], "personCount must be an integer greater than 0");
+        }
+
         return { data, errors, errorMessage };
     }
 
@@ -149,21 +153,24 @@ export default class TableSession extends BaseModel {
 
         try {
             const transaction = await this.connection.manager.transaction(async (transactionalEntityManager: any) => {
+                const personCount = input.personCount && Number.isInteger(input.personCount) && input.personCount > 0 ? input.personCount : 1;
                 const session = transactionalEntityManager.create(this.repository.target, {
                     customerId: data.customer.id,
                     tableId: data.table.id,
                     status: TableSessionStatus.BOOKED,
                     unit: categoryPrice.unit,
                     duration: categoryPrice.duration,
-                    freeMins: categoryPrice.freeMins
+                    freeMins: categoryPrice.freeMins,
+                    personCount,
                 });
 
                 await transactionalEntityManager.save(session);
 
+                const computedAmount = Number(categoryPrice.price) * personCount;
                 const payment = await this.context.payment.createPayment(transactionalEntityManager, {
                     customerId: data.customer.id,
                     tableSessionId: session.id,
-                    amount: categoryPrice.price,
+                    amount: computedAmount,
                     method: input.paymentMethod.paymentScheme,
                     status: PaymentStatus.SUCCESS,
                     calculateTax: true, 
@@ -337,10 +344,13 @@ export default class TableSession extends BaseModel {
                 
                 await transactionalEntityManager.save(session);
 
+                const rechargePersonCount = session.personCount || 1;
+                const rechargeAmount = Number(categoryPrice.price) * rechargePersonCount;
+
                 const payment = await this.context.payment.createPayment(transactionalEntityManager, {
                     customerId: data.tableSession.customer.id,
                     tableSessionId: session.id,
-                    amount: categoryPrice.price,
+                    amount: rechargeAmount,
                     method: input.paymentMethod.paymentScheme,
                     status: PaymentStatus.SUCCESS,
                     calculateTax: true, 

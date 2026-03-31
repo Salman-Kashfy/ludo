@@ -5,6 +5,7 @@ import {
     sendPromotionalMessage,
     sendSessionExpiryWarning,
     testNotification,
+    testFCMNotification,
     getNotificationStats
 } from '../endpoints/notifications';
 
@@ -22,6 +23,7 @@ router.post('/promotional', sendPromotionalMessage);
 
 // Testing and utilities
 router.post('/test', testNotification);
+router.post('/test-fcm', testFCMNotification);
 router.get('/stats', getNotificationStats);
 
 export default router;

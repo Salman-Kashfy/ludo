@@ -56,6 +56,9 @@ input SaveCustomerInput {
     phoneNumber: String!
     companyUuid: ID!
     dob: String
+    deviceToken: String
+    deviceType: String
+    fcmToken: String
 }
 
 input SaveCustomerDeviceInput {

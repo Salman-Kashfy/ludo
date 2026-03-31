@@ -48,6 +48,7 @@ export interface TableSessionBillingInput {
     hours: number
     companyUuid: string
     categoryPriceUuid: string
+    personCount?: number
 }
 
 export interface PaymentPayload {

@@ -297,9 +297,9 @@ export default class Payment extends BaseModel {
                 return this.formatErrors(GlobalError.RECORD_NOT_FOUND, 'Category price not found');
             }
 
-            // Example tax calculation (15% by default)
+            const personCount = input.personCount && Number.isInteger(input.personCount) && input.personCount > 0 ? input.personCount : 1;
             const taxRate = 15;
-            const subtotal = categoryPrice.price;
+            const subtotal = Number(categoryPrice.price) * personCount;
             const taxAmount = subtotal * (taxRate / 100);
             const totalAmount = subtotal + taxAmount;
 
@@ -314,6 +314,8 @@ export default class Payment extends BaseModel {
                     unit: categoryPrice.unit,
                     duration: categoryPrice.duration,
                     currencyName: categoryPrice.currencyName,
+                    personCount,
+                    pricePerPerson: Number(categoryPrice.price),
                     subtotal,
                     taxRate,
                     taxAmount,
