@@ -19,7 +19,8 @@ export default class Payment extends BaseModel {
     async index(paging: PagingInterface, params: any) {
         const _query = this.repository.createQueryBuilder('p')
             .leftJoinAndSelect('p.customer', 'customer')
-            .leftJoinAndSelect('p.invoice', 'invoice');
+            .leftJoinAndSelect('p.invoice', 'invoice')
+            .leftJoinAndSelect('p.tableSession', 'tableSession');
 
         if (!isEmpty(params.searchText)) {
             _query.andWhere(

@@ -173,7 +173,8 @@ export default class TableSession extends BaseModel {
                     amount: computedAmount,
                     method: input.paymentMethod.paymentScheme,
                     status: PaymentStatus.SUCCESS,
-                    calculateTax: true, 
+                    calculateTax: true,
+                    personCount,
                 });
 
                 if (!payment || !payment.status) {
@@ -353,7 +354,8 @@ export default class TableSession extends BaseModel {
                     amount: rechargeAmount,
                     method: input.paymentMethod.paymentScheme,
                     status: PaymentStatus.SUCCESS,
-                    calculateTax: true, 
+                    calculateTax: true,
+                    personCount: rechargePersonCount,
                 });
 
                 if (!payment || !payment.status) {

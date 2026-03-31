@@ -173,16 +173,24 @@ export const fcmNotificationService = {
                 },
                 data: data || {},
                 webpush: {
+                    headers: {
+                        Urgency: 'high'
+                    },
+                    fcmOptions: {
+                        link: '/auth/thank-you'
+                    },
                     notification: {
                         title,
                         body,
                         icon: '/ludo-icon.png',
-                        badge: '/ludo-badge.png',
+                        badge: '/ludo-icon.png',
                         tag: 'booking-notification',
-                        requireInteraction: true
+                        requireInteraction: true,
+                        click_action: '/auth/thank-you'
                     }
                 },
                 android: {
+                    priority: "high" as const,
                     notification: {
                         title,
                         body,

@@ -62,6 +62,10 @@ export interface PaymentPayload {
     taxRate?: number;
     taxAmount?: number;
     totalAmount?: number;
+    // Add table session related fields
+    tableSessionId?: number;
+    tournamentId?: number;
+    personCount?: number;
 }
 
 export interface PaymentMethodInput {
