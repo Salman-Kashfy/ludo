@@ -165,6 +165,42 @@ export const testNotification = async (req: RequestWithContext, res: Response) =
     }
 };
 
+export const testFCMNotification = async (req: RequestWithContext, res: Response) => {
+    try {
+        const { fcmToken, title = 'Test FCM Notification', body = 'This is a test FCM notification' } = req.body;
+        
+        if (!fcmToken) {
+            return res.status(400).json({ 
+                message: 'FCM token is required' 
+            });
+        }
+
+        const { fcmNotificationService } = await import('../services/fcmNotificationService');
+
+        console.log(`🧪 Testing FCM notification to token: ${fcmToken.substring(0, 20)}...`);
+
+        const result = await fcmNotificationService.sendToDevice(
+            fcmToken,
+            title,
+            body,
+            { test: 'true', timestamp: new Date().toISOString() }
+        );
+
+        return res.json({
+            message: 'Test FCM notification sent',
+            fcmToken: fcmToken.substring(0, 20) + '...',
+            success: result.success,
+            error: result.error
+        });
+    } catch (error: any) {
+        console.error('Failed to send test FCM notification:', error);
+        return res.status(500).json({ 
+            message: 'Failed to send test FCM notification',
+            error: error.message 
+        });
+    }
+};
+
 export const getNotificationStats = async (req: RequestWithContext, res: Response) => {
     try {
         // This would typically come from a database or cache
