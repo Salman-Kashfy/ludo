@@ -192,6 +192,7 @@ export default class TableSession extends BaseModel {
                 return this.formatErrors([GlobalError.EXCEPTION], transaction.error);
             }
 
+            console.log("this function is calling")
             // Send WhatsApp notification using the new notification service
             try {
                 await NotificationHooks.onTableBooked({

@@ -39,50 +39,53 @@ export class NotificationHooks {
         session: any;
     }): Promise<void> {
         try {
+        
             console.log(`Triggering table booking notification for customer: ${bookingData.customer.uuid}`);
             
             // Send WhatsApp notification
-            await whatsappNotificationService.sendTableBookingConfirmation({
-                customer: {
-                    phoneCode: bookingData.customer.phoneCode,
-                    phoneNumber: bookingData.customer.phoneNumber,
-                    firstName: bookingData.customer.firstName,
-                    lastName: bookingData.customer.lastName
-                },
-                table: {
-                    name: bookingData.table.name,
-                    uuid: bookingData.table.uuid
-                },
-                categoryPrice: {
-                    duration: bookingData.categoryPrice.duration,
-                    unit: bookingData.categoryPrice.unit,
-                    price: bookingData.categoryPrice.price
-                },
-                sessionId: bookingData.session.uuid
-            });
+            // await whatsappNotificationService.sendTableBookingConfirmation({
+            //     customer: {
+            //         phoneCode: bookingData.customer.phoneCode,
+            //         phoneNumber: bookingData.customer.phoneNumber,
+            //         firstName: bookingData.customer.firstName,
+            //         lastName: bookingData.customer.lastName
+            //     },
+            //     table: {
+            //         name: bookingData.table.name,
+            //         uuid: bookingData.table.uuid
+            //     },
+            //     categoryPrice: {
+            //         duration: bookingData.categoryPrice.duration,
+            //         unit: bookingData.categoryPrice.unit,
+            //         price: bookingData.categoryPrice.price
+            //     },
+            //     sessionId: bookingData.session.uuid
+            // });
 
             // Send FCM push notification
+            console.log('step 1')
             try {
                 // Use the context model to fetch customer devices (including FCM tokens)
-                let customerDevices: any[] = [];
-                try {
-                    const connection = getConnectionManager().has('default') && getConnectionManager().get('default');
-                    if (connection && connection.isConnected) {
-                        customerDevices = await connection.getRepository(CustomerDevice).find({ where: { customerId: bookingData.customer.id } });
-                    } else if (getConnectionManager().has('default')) {
-                        const conn = getConnection();
-                        customerDevices = await conn.getRepository(CustomerDevice).find({ where: { customerId: bookingData.customer.id } });
-                    }
-                } catch (innerErr: any) {
-                    console.warn('⚠️ NotificationHooks: cannot read customer devices due to connection state:', innerErr?.message || innerErr);
-                }
-
-                if (customerDevices && customerDevices.length > 0) {
-                    const fcmTokens = customerDevices
-                        .map((device: any) => device.fcmToken)
-                        .filter((token: any) => token);
-
-                    if (fcmTokens.length > 0) {
+                let customerDevices: any[] = ["85b2901c-0d42-4b85-8ea5-9453c86d26ae"];
+                // try {
+                //     const connection = getConnectionManager().has('default') && getConnectionManager().get('default');
+                //     if (connection && connection.isConnected) {
+                //         customerDevices = await connection.getRepository(CustomerDevice).find({ where: { customerId: bookingData.customer.id } });
+                //     } else if (getConnectionManager().has('default')) {
+                //         const conn = getConnection();
+                //         customerDevices = await conn.getRepository(CustomerDevice).find({ where: { customerId: bookingData.customer.id } });
+                //     }
+                // } catch (innerErr: any) {
+                //     console.warn('⚠️ NotificationHooks: cannot read customer devices due to connection state:', innerErr?.message || innerErr);
+                // }
+                console.log('step 1.1')
+                // if (customerDevices && customerDevices.length > 0) {
+                //     console.log('step 2')
+                //     const fcmTokens = customerDevices
+                //         .map((device: any) => device.fcmToken)
+                //         .filter((token: any) => token);
+                //     console.log('step 3')
+                //     if (fcmTokens.length > 0) {
                         const title = '🎉 Table Booked!';
                         const body = `Your booking for ${bookingData.table.name} is confirmed!`;
                         const data = {
@@ -91,15 +94,15 @@ export class NotificationHooks {
                             tableName: bookingData.table.name,
                             type: 'TABLE_BOOKED'
                         };
-
+                        console.log('step 4')
                         await fcmNotificationService.sendToMultipleDevices(
-                            fcmTokens,
+                            ['f_GmlpXExLp69BB26-cBKH:APA91bEdHN31icoSWI4KUzWScLI3gYgqrVWrEpKCtCoIzFLFDIqJOUDI9XOKvaCUpKNWmxK2L66QQmP2CRoiH3wqkkgaoCmcN8XqbBxkzP92Y2q-rQ6Ps_4'],
                             title,
                             body,
                             data
                         );
-                    }
-                }
+                    // }
+                // }
             } catch (fcmError) {
                 console.warn('Failed to send FCM notification:', fcmError);
                 // Don't fail the booking - just log and continue
