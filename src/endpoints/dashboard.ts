@@ -164,10 +164,9 @@ export const bookTableForCustomer = async (req: Request, res: Response) => {
 
         // Send FCM notification to customer
         if (customerDevices && customerDevices.length > 0) {
-            // const fcmTokens = customerDevices
-            //     .filter((device: any) => device.fcmToken)
-            //     .map((device: any) => device.fcmToken);
-            const fcmTokens = ['fdD3NjBa60hfvSvoIKoQVq:APA91bGyJb0zvBL7WLrpKoGyIJydU84HNAms7iaTGqEF8rf0uCLaNpYZ3HPM8RWktNIUgoxlEGs5r4vq6AC7YOvVsU1pJtKAhgYEs_otRw6ML-65IWAXFN4']
+            const fcmTokens = customerDevices
+                .filter((device: any) => device.fcmToken)
+                .map((device: any) => device.fcmToken);
 
             console.log(`📱 Devices with FCM tokens: ${fcmTokens.length}/${customerDevices.length}`);
             console.log(`📱 FCM Tokens:`, fcmTokens.map((token: string) => token.substring(0, 20) + '...'));
